@@ -38,7 +38,13 @@ export const DataTable = ({ data }: DataTableProps) => {
             data.slice(0, 10).map((metric) => (
               <TableRow key={metric.id}>
                 <TableCell className="font-medium">
-                  {format(new Date(metric.timestamp), "yyyy-MM-dd HH:mm:ss")}
+                  {(() => {
+                    try {
+                      return format(new Date(metric.timestamp), "yyyy-MM-dd HH:mm:ss");
+                    } catch (e) {
+                      return metric.timestamp;
+                    }
+                  })()}
                 </TableCell>
                 <TableCell>{metric.cpu_usage}%</TableCell>
                 <TableCell>{metric.cpu_temp}°C</TableCell>

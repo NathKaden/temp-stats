@@ -32,7 +32,13 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
               <XAxis 
                 dataKey="timestamp" 
                 tick={{fontSize: 10}} 
-                tickFormatter={(str) => format(new Date(str), 'HH:mm')}
+                tickFormatter={(str) => {
+                  try {
+                    return format(new Date(str), 'HH:mm');
+                  } catch (e) {
+                    return str;
+                  }
+                }}
                 stroke="#64748b"
               />
               <YAxis 
@@ -41,8 +47,14 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                 unit={unit}
               />
               <Tooltip 
-                labelFormatter={(label) => format(new Date(label), 'PPP HH:mm:ss')}
-                formatter={(value: number) => [`${value}${unit}`, title]}
+                labelFormatter={(label) => {
+                  try {
+                    return format(new Date(label), 'PPP HH:mm:ss');
+                  } catch (e) {
+                    return label;
+                  }
+                }}
+                formatter={(value: any) => [`${value ?? 0}${unit}`, title]}
               />
               <Area 
                 type="monotone" 
