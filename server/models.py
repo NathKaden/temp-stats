@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Float, String, DateTime
 from datetime import datetime
-from .database import Base
+from database import Base
 
 class SystemMetric(Base):
     __tablename__ = "system_metrics"
