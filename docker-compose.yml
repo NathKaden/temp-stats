@@ -13,12 +13,13 @@ services:
     restart: always
 
   client:
-    build: ./client
+    build:
+      context: ./client
+      args:
+        - NEXT_PUBLIC_API_URL=https://pistats.beskarfox.com
     container_name: pi-monitor-client
     ports:
       - "3001:3000"
-    environment:
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8001}
     depends_on:
       - server
     restart: always
