@@ -1,6 +1,7 @@
 export interface SystemMetric {
   id: number;
   timestamp: string;
+  device_name: string;
   cpu_temp: number;
   cpu_usage: number;
   disk_temp: number;

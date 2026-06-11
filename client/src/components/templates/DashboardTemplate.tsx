@@ -9,6 +9,9 @@ interface DashboardTemplateProps {
   table: ReactNode;
   activeTab: "dashboard" | "logs";
   setActiveTab: (tab: "dashboard" | "logs") => void;
+  selectedDevice: string;
+  setSelectedDevice: (device: string) => void;
+  devices: string[];
 }
 
 export const DashboardTemplate = ({ 
@@ -18,7 +21,10 @@ export const DashboardTemplate = ({
   charts, 
   table, 
   activeTab, 
-  setActiveTab 
+  setActiveTab,
+  selectedDevice,
+  setSelectedDevice,
+  devices
 }: DashboardTemplateProps) => {
   return (
     <div className="relative flex min-h-screen flex-col md:flex-row bg-background text-foreground bg-grid-pattern overflow-hidden">
@@ -35,6 +41,31 @@ export const DashboardTemplate = ({
             <span className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
             <div className="flex-1">{title}</div>
           </div>
+
+          {/* Device Selector (Desktop) */}
+          {devices.length > 0 && (
+            <div className="px-3 mb-6">
+              <div className="relative">
+                <select
+                  value={selectedDevice}
+                  onChange={(e) => setSelectedDevice(e.target.value)}
+                  className="w-full bg-zinc-900/50 hover:bg-zinc-800/50 border border-border/60 hover:border-indigo-500/30 text-xs font-semibold tracking-wider text-muted-foreground hover:text-foreground py-2.5 pl-3.5 pr-8 rounded-xl appearance-none cursor-pointer transition-all duration-300 outline-none"
+                >
+                  {devices.map((device) => (
+                    <option key={device} value={device} className="bg-zinc-950 text-foreground text-xs font-semibold py-2">
+                      {device.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground/60">
+                  <svg className="fill-current h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Nav Links */}
           <nav className="px-3 space-y-1">
             <button
@@ -77,10 +108,32 @@ export const DashboardTemplate = ({
       <div className="flex-grow flex flex-col md:pl-60 z-10">
         {/* Header - Mobile Only */}
         <header className="md:hidden sticky top-0 z-10 border-b border-border/40 bg-background/65 backdrop-blur-md transition-all">
-          <div className="container mx-auto px-4 py-3.5 flex items-center justify-between">
+          <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {title}
-            <div className="scale-90 transform origin-right">
-              {refreshButton}
+            <div className="flex items-center gap-2">
+              {devices.length > 0 && (
+                <div className="relative scale-90">
+                  <select
+                    value={selectedDevice}
+                    onChange={(e) => setSelectedDevice(e.target.value)}
+                    className="bg-zinc-900/50 border border-border/60 text-[10px] font-bold tracking-wider text-muted-foreground py-1.5 pl-2.5 pr-6 rounded-lg appearance-none cursor-pointer outline-none"
+                  >
+                    {devices.map((device) => (
+                      <option key={device} value={device} className="bg-zinc-950 text-foreground text-[10px]">
+                        {device.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-muted-foreground/60">
+                    <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                    </svg>
+                  </div>
+                </div>
+              )}
+              <div className="scale-90 transform origin-right">
+                {refreshButton}
+              </div>
             </div>
           </div>
         </header>

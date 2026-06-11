@@ -16,6 +16,7 @@ fi
 # Configuration (defaults to env variables or fallback values)
 API_KEY="${API_KEY:-your-secret-key}"
 API_URL="${API_URL:-${NEXT_PUBLIC_API_URL:-http://localhost:8000}/api/metrics}"
+DEVICE_NAME="${DEVICE_NAME:-$(hostname)}"
 
 # --- Collect Metrics ---
 
@@ -38,16 +39,10 @@ if command -v smartctl >/dev/null 2>&1 && sudo -n true >/dev/null 2>&1; then
 fi
 
 # 4. Disk Space Usage
-DISK_USAGE_GB=$(df / 2>/dev/null | awk "NR==2{print \$3}" | sed 's/[^0-9.]//g')
+DISK_USAGE_GB=$(df / 2>/dev/null | awk 'NR==2{printf "%.1f", $3/1048576}')
 DISK_USAGE_GB="${DISK_USAGE_GB:-0.0}"
-DISK_TOTAL_GB=$(df / 2>/dev/null | awk "NR==2{print \$2}" | sed 's/[^0-9.]//g')
+DISK_TOTAL_GB=$(df / 2>/dev/null | awk 'NR==2{printf "%.1f", $2/1048576}')
 DISK_TOTAL_GB="${DISK_TOTAL_GB:-0.0}"
-
-# If values are in KB instead of GB (more than 1M), convert them
-if (( $(echo "$DISK_TOTAL_GB > 1000000" | bc -l 2>/dev/null || [ ${DISK_TOTAL_GB%.*} -gt 1000000 ] 2>/dev/null) )); then
-  DISK_USAGE_GB=$(awk -v u="$DISK_USAGE_GB" 'BEGIN {printf "%.1f", u/1048576}')
-  DISK_TOTAL_GB=$(awk -v t="$DISK_TOTAL_GB" 'BEGIN {printf "%.1f", t/1048576}')
-fi
 
 # 5. RAM Usage
 RAM_USAGE_MB=$(free -m 2>/dev/null | awk "/Mem/{print \$3}" | tr -d '[:space:]')
@@ -94,6 +89,7 @@ UPTIME="${UPTIME:-unknown}"
 # --- Prepare JSON ---
 JSON_PAYLOAD=$(cat <<EOF
 {
+  "device_name": "$DEVICE_NAME",
   "cpu_temp": $CPU_TEMP,
   "cpu_usage": $CPU_USAGE,
   "disk_temp": $DISK_TEMP,

@@ -10,6 +10,7 @@ fi
 # Configuration (defaults to env variables or fallback values)
 API_KEY="${API_KEY:-your-secret-key}"
 API_URL="${API_URL:-${NEXT_PUBLIC_API_URL:-http://localhost:8000}/api/metrics}"
+DEVICE_NAME="${DEVICE_NAME:-$(hostname)}"
 
 # Collect Metrics
 CPU_TEMP=$(vcgencmd measure_temp | cut -d= -f2 | sed 's/..$//')
@@ -23,10 +24,10 @@ DISK_TEMP=$(sudo smartctl -A /dev/sda | grep "Temperature:" | head -1 | awk "{pr
 if [ -z "$DISK_TEMP" ]; then DISK_TEMP=0; fi
 DISK_TEMP="${DISK_TEMP:-0.0}"
 
-DISK_USAGE_GB=$(df / | awk "NR==2{print \$3}" | sed 's/G//')
+DISK_USAGE_GB=$(df / | awk 'NR==2{printf "%.1f", $3/1048576}')
 DISK_USAGE_GB="${DISK_USAGE_GB:-0.0}"
 
-DISK_TOTAL_GB=$(df / | awk "NR==2{print \$2}" | sed 's/G//')
+DISK_TOTAL_GB=$(df / | awk 'NR==2{printf "%.1f", $2/1048576}')
 DISK_TOTAL_GB="${DISK_TOTAL_GB:-0.0}"
 
 # RAM
@@ -69,6 +70,7 @@ UPTIME="${UPTIME:-unknown}"
 # Prepare JSON
 JSON_PAYLOAD=$(cat <<EOF
 {
+  "device_name": "$DEVICE_NAME",
   "cpu_temp": $CPU_TEMP,
   "cpu_usage": $CPU_USAGE,
   "disk_temp": $DISK_TEMP,

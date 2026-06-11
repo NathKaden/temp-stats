@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 import models, schemas, database
 from database import engine, get_db
 
@@ -36,16 +36,27 @@ def create_metric(metric: schemas.SystemMetricCreate, db: Session = Depends(get_
     return db_metric
 
 @app.get("/api/metrics", response_model=List[schemas.SystemMetric])
-def read_metrics(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    metrics = db.query(models.SystemMetric).order_by(models.SystemMetric.timestamp.desc()).offset(skip).limit(limit).all()
+def read_metrics(device_name: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    query = db.query(models.SystemMetric)
+    if device_name:
+        query = query.filter(models.SystemMetric.device_name == device_name)
+    metrics = query.order_by(models.SystemMetric.timestamp.desc()).offset(skip).limit(limit).all()
     return metrics
 
 @app.get("/api/metrics/latest", response_model=schemas.SystemMetric)
-def read_latest_metric(db: Session = Depends(get_db)):
-    metric = db.query(models.SystemMetric).order_by(models.SystemMetric.timestamp.desc()).first()
+def read_latest_metric(device_name: Optional[str] = None, db: Session = Depends(get_db)):
+    query = db.query(models.SystemMetric)
+    if device_name:
+        query = query.filter(models.SystemMetric.device_name == device_name)
+    metric = query.order_by(models.SystemMetric.timestamp.desc()).first()
     if metric is None:
         raise HTTPException(status_code=404, detail="No metrics found")
     return metric
+
+@app.get("/api/devices", response_model=List[str])
+def read_devices(db: Session = Depends(get_db)):
+    devices = db.query(models.SystemMetric.device_name).distinct().all()
+    return [d[0] for d in devices if d[0] is not None]
 
 if __name__ == "__main__":
     import uvicorn

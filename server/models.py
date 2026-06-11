@@ -7,6 +7,7 @@ class SystemMetric(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    device_name = Column(String, default="default", index=True)
     cpu_temp = Column(Float)
     cpu_usage = Column(Float)
     disk_temp = Column(Float)

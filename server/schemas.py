@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional
 
 class SystemMetricBase(BaseModel):
+    device_name: Optional[str] = "default"
     cpu_temp: float
     cpu_usage: float
     disk_temp: float
