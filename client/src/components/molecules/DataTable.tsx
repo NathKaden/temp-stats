@@ -18,7 +18,7 @@ export const DataTable = ({ data }: DataTableProps) => {
     <div className="rounded-xl glass-card-blended bg-card/40 backdrop-blur-xl overflow-hidden shadow-xl">
       <Table>
         <TableHeader className="bg-zinc-900/40">
-          <TableRow className="border-b border-border/40 hover:bg-transparent">
+          <TableRow className="border-b border-border/30 hover:bg-transparent">
             <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Timestamp</TableHead>
             <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">CPU Usage</TableHead>
             <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">CPU Temp</TableHead>
@@ -29,14 +29,14 @@ export const DataTable = ({ data }: DataTableProps) => {
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow className="border-b border-border/40">
+            <TableRow className="border-b border-border/30">
               <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                 No telemetry logs recorded.
               </TableCell>
             </TableRow>
           ) : (
             data.slice(0, 10).map((metric) => (
-              <TableRow key={metric.id} className="border-b border-border/40 hover:bg-zinc-800/25 transition-colors duration-200">
+              <TableRow key={metric.id} className="border-b border-border/30 hover:bg-zinc-800/25 transition-colors duration-200">
                 <TableCell className="px-4 py-3 font-medium text-muted-foreground/90">
                   {(() => {
                     try {

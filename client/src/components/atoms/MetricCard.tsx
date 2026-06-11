@@ -21,7 +21,7 @@ export const MetricCard = ({ title, value, unit, icon, description }: MetricCard
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10">
         <CardTitle className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">{title}</CardTitle>
         {icon && (
-          <div className="text-muted-foreground bg-zinc-800/30 p-2 rounded-lg border border-border/20 group-hover:text-indigo-400 group-hover:border-indigo-500/20 transition-all duration-300">
+          <div className="text-muted-foreground bg-zinc-800/30 p-2 rounded-lg border border-border/30 group-hover:text-indigo-400 group-hover:border-indigo-500/30 transition-all duration-300">
             {icon}
           </div>
         )}
@@ -33,7 +33,7 @@ export const MetricCard = ({ title, value, unit, icon, description }: MetricCard
         </div>
         
         {isPercent && !isNaN(numericValue) && (
-          <div className="mt-3.5 w-full bg-zinc-800/50 rounded-full h-1.5 overflow-hidden border border-zinc-800/20">
+          <div className="mt-3.5 w-full bg-zinc-800/50 rounded-full h-1.5 overflow-hidden border border-border/30">
             <div 
               className={`h-full rounded-full transition-all duration-500 ${
                 numericValue > 85 

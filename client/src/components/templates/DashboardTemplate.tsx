@@ -34,7 +34,7 @@ export const DashboardTemplate = ({
       <div className="absolute bottom-[-10%] left-[15%] w-[550px] h-[550px] rounded-full bg-fuchsia-600/8 blur-[140px] pointer-events-none z-0" />
 
       {/* Sidebar - Desktop */}
-      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-border/40 bg-zinc-950/20 backdrop-blur-xl z-20">
+      <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-border/30 bg-zinc-950/20 backdrop-blur-xl z-20">
         <div className="flex flex-col h-full pt-6 pb-0 overflow-y-auto">
           {/* Logo / Title */}
           <div className="flex items-center px-6 mb-8 gap-2.5">
@@ -45,11 +45,11 @@ export const DashboardTemplate = ({
           {/* Device Selector (Desktop) */}
           {devices.length > 0 && (
             <div className="px-3 mb-6">
-              <div className="relative">
+              <div className="relative w-full glass-btn-blended bg-zinc-900/50 hover:bg-zinc-800/50 rounded-xl transition-all duration-300">
                 <select
                   value={selectedDevice}
                   onChange={(e) => setSelectedDevice(e.target.value)}
-                  className="w-full bg-zinc-900/50 hover:bg-zinc-800/50 border border-border/60 hover:border-indigo-500/30 text-xs font-semibold tracking-wider text-muted-foreground hover:text-foreground py-2.5 pl-3.5 pr-8 rounded-xl appearance-none cursor-pointer transition-all duration-300 outline-none"
+                  className="w-full bg-transparent text-xs font-semibold tracking-wider text-muted-foreground hover:text-foreground py-2.5 pl-3.5 pr-8 appearance-none cursor-pointer outline-none border-0"
                 >
                   {devices.map((device) => (
                     <option key={device} value={device} className="bg-zinc-950 text-foreground text-xs font-semibold py-2">
@@ -98,7 +98,7 @@ export const DashboardTemplate = ({
           </div>
 
           {/* Footer in Sidebar (Desktop) */}
-          <div className="border-t border-border/40 bg-background/10 py-5 px-6 text-center text-[10px] text-muted-foreground/45 tracking-wider font-mono">
+          <div className="border-t border-border/30 bg-background/10 py-5 px-6 text-center text-[10px] text-muted-foreground/45 tracking-wider font-mono">
             v1.0.0 &bull; commit cd996dd
           </div>
         </div>
@@ -107,16 +107,16 @@ export const DashboardTemplate = ({
       {/* Main Content Area */}
       <div className="flex-grow flex flex-col md:pl-60 z-10">
         {/* Header - Mobile Only */}
-        <header className="md:hidden sticky top-0 z-10 border-b border-border/40 bg-background/65 backdrop-blur-md transition-all">
+        <header className="md:hidden sticky top-0 z-10 border-b border-border/30 bg-background/65 backdrop-blur-md transition-all">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {title}
             <div className="flex items-center gap-2">
               {devices.length > 0 && (
-                <div className="relative scale-90">
+                <div className="relative scale-90 glass-btn-blended bg-zinc-900/50 rounded-lg">
                   <select
                     value={selectedDevice}
                     onChange={(e) => setSelectedDevice(e.target.value)}
-                    className="bg-zinc-900/50 border border-border/60 text-[10px] font-bold tracking-wider text-muted-foreground py-1.5 pl-2.5 pr-6 rounded-lg appearance-none cursor-pointer outline-none"
+                    className="bg-transparent text-[10px] font-bold tracking-wider text-muted-foreground py-1.5 pl-2.5 pr-6 appearance-none cursor-pointer outline-none border-0"
                   >
                     {devices.map((device) => (
                       <option key={device} value={device} className="bg-zinc-950 text-foreground text-[10px]">
@@ -164,7 +164,7 @@ export const DashboardTemplate = ({
         </main>
 
         {/* Footer - Mobile Only */}
-        <footer className="md:hidden border-t border-border/40 bg-background/20 backdrop-blur-md py-6 pb-20">
+        <footer className="md:hidden border-t border-border/30 bg-background/20 backdrop-blur-md py-6 pb-20">
           <div className="container mx-auto px-4 text-center text-xs text-muted-foreground/45 tracking-wider font-mono">
             v1.0.0 &bull; commit cd996dd
           </div>
@@ -172,7 +172,7 @@ export const DashboardTemplate = ({
       </div>
 
       {/* Bottom Nav Bar - Mobile Only */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 border-t border-border/45 bg-zinc-950/80 backdrop-blur-xl z-20 py-3 px-6 flex justify-around items-center">
+      <div className="md:hidden fixed bottom-0 inset-x-0 border-t border-border/30 bg-zinc-950/80 backdrop-blur-xl z-20 py-3 px-6 flex justify-around items-center">
         <button
           onClick={() => setActiveTab("dashboard")}
           className={`flex flex-col items-center gap-1.5 transition-colors cursor-pointer focus:outline-none focus-visible:outline-none ${

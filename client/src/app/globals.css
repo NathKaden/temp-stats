@@ -142,30 +142,24 @@
     linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
 }
 
-/* Premium Apple-style Glassmorphic borders (smooth gradient blending) */
-.glass-card-blended {
+/* Premium Apple-style Glassmorphic borders (smooth linear gradient blending to ensure absolute uniformity across all aspect ratios) */
+.glass-card-blended, .glass-btn-blended {
   position: relative;
   border: none !important;
 }
 
-.glass-card-blended::before {
+.glass-card-blended::before, .glass-btn-blended::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: conic-gradient(
-    from 0deg,
-    rgba(212, 212, 216, 0.45) 0deg,
-    rgba(212, 212, 216, 0.45) 40deg,
-    rgba(0, 0, 0, 0.65) 70deg,
-    rgba(0, 0, 0, 0.65) 110deg,
-    rgba(212, 212, 216, 0.45) 140deg,
-    rgba(212, 212, 216, 0.45) 220deg,
-    rgba(0, 0, 0, 0.65) 250deg,
-    rgba(0, 0, 0, 0.65) 290deg,
-    rgba(212, 212, 216, 0.45) 320deg,
-    rgba(212, 212, 216, 0.45) 360deg
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(0, 0, 0, 0.85) 20%,
+    rgba(0, 0, 0, 0.85) 80%,
+    rgba(255, 255, 255, 0.15) 100%
   ) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -188,61 +182,6 @@
   transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-card-blended:hover::before {
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 255, 255, 0.55) 0deg,
-    rgba(255, 255, 255, 0.55) 40deg,
-    rgba(99, 102, 241, 0.5) 70deg,
-    rgba(99, 102, 241, 0.5) 110deg,
-    rgba(255, 255, 255, 0.55) 140deg,
-    rgba(255, 255, 255, 0.55) 220deg,
-    rgba(99, 102, 241, 0.5) 250deg,
-    rgba(99, 102, 241, 0.5) 290deg,
-    rgba(255, 255, 255, 0.55) 320deg,
-    rgba(255, 255, 255, 0.55) 360deg
-  ) border-box;
-}
-
-.glass-card-blended:hover::after {
-  box-shadow: 
-    inset 0 6px 8px -6px rgba(255, 255, 255, 0.25),
-    inset 0 -6px 8px -6px rgba(255, 255, 255, 0.25);
-}
-
-/* Premium Apple-style Glassmorphic buttons (smaller inner shadows to avoid text overlap) */
-.glass-btn-blended {
-  position: relative;
-  border: none !important;
-}
-
-.glass-btn-blended::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(
-    from 0deg,
-    rgba(212, 212, 216, 0.45) 0deg,
-    rgba(212, 212, 216, 0.45) 68deg,
-    rgba(0, 0, 0, 0.65) 83deg,
-    rgba(0, 0, 0, 0.65) 97deg,
-    rgba(212, 212, 216, 0.45) 112deg,
-    rgba(212, 212, 216, 0.45) 248deg,
-    rgba(0, 0, 0, 0.65) 263deg,
-    rgba(0, 0, 0, 0.65) 277deg,
-    rgba(212, 212, 216, 0.45) 292deg,
-    rgba(212, 212, 216, 0.45) 360deg
-  ) border-box;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  pointer-events: none;
-  z-index: 20;
-  transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
 .glass-btn-blended::after {
   content: "";
   position: absolute;
@@ -256,20 +195,23 @@
   transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-btn-blended:hover::before {
-  background: conic-gradient(
-    from 0deg,
-    rgba(255, 255, 255, 0.55) 0deg,
-    rgba(255, 255, 255, 0.55) 68deg,
-    rgba(0, 0, 0, 0.65) 83deg,
-    rgba(0, 0, 0, 0.65) 97deg,
-    rgba(255, 255, 255, 0.55) 112deg,
-    rgba(255, 255, 255, 0.55) 248deg,
-    rgba(0, 0, 0, 0.65) 263deg,
-    rgba(0, 0, 0, 0.65) 277deg,
-    rgba(255, 255, 255, 0.55) 292deg,
-    rgba(255, 255, 255, 0.55) 360deg
+/* Hover States */
+.glass-card-blended:hover::before, .glass-btn-blended:hover::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(99, 102, 241, 0.35) 8%,
+    rgba(0, 0, 0, 0.85) 25%,
+    rgba(0, 0, 0, 0.85) 75%,
+    rgba(99, 102, 241, 0.25) 92%,
+    rgba(255, 255, 255, 0.25) 100%
   ) border-box;
+}
+
+.glass-card-blended:hover::after {
+  box-shadow: 
+    inset 0 6px 8px -6px rgba(255, 255, 255, 0.25),
+    inset 0 -6px 8px -6px rgba(255, 255, 255, 0.25);
 }
 
 .glass-btn-blended:hover::after {

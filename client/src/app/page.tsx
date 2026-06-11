@@ -76,7 +76,7 @@ export default function Home() {
       size="sm" 
       onClick={() => fetchData(selectedDevice)} 
       disabled={loading}
-      className="w-full md:w-auto border-border/60 bg-zinc-900/40 hover:bg-zinc-800/40 text-muted-foreground hover:text-foreground transition-all duration-300 hover:border-indigo-500/30 shadow-sm font-medium rounded-lg cursor-pointer"
+      className="w-full md:w-auto glass-btn-blended bg-zinc-900/40 hover:bg-zinc-800/40 text-muted-foreground hover:text-foreground transition-all duration-300 shadow-sm font-medium rounded-lg cursor-pointer"
     >
       <RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
       Refresh
