@@ -36,7 +36,7 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
         data={reversedHistory}
         dataKey="net_rx_mb"
         color="#f59e0b"
-        unit=" MB/s"
+        unit=" Mo/s"
       />
     </div>
   );

@@ -7,14 +7,16 @@ import { HistorySection } from "@/components/organisms/HistorySection";
 import { DataTable } from "@/components/molecules/DataTable";
 import { metricsService } from "@/services/api";
 import { SystemMetric } from "@/types";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
+  const [isMounted, setIsMounted] = useState(false);
   const [latest, setLatest] = useState<SystemMetric | null>(null);
   const [history, setHistory] = useState<SystemMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"dashboard" | "logs">("dashboard");
 
   const fetchData = async () => {
     try {
@@ -35,28 +37,38 @@ export default function Home() {
   };
 
   useEffect(() => {
+    setIsMounted(true);
     fetchData();
     const interval = setInterval(fetchData, 30000); // Refresh every 30s
     return () => clearInterval(interval);
   }, []);
 
-  const Header = (
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-primary">Pi Monitor</h1>
-        <p className="text-sm text-muted-foreground">Raspberry Pi System Statistics</p>
-      </div>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={fetchData} 
-        disabled={loading}
-      >
-        <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-        Refresh
-      </Button>
-    </div>
+  const Title = (
+    <h1 className="text-xl font-bold tracking-tight text-violet-300">
+      Pi Stats
+    </h1>
   );
+
+  const RefreshButton = (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={fetchData} 
+      disabled={loading}
+      className="w-full md:w-auto border-border/60 bg-zinc-900/40 hover:bg-zinc-800/40 text-muted-foreground hover:text-foreground transition-all duration-300 hover:border-indigo-500/30 shadow-sm font-medium rounded-lg cursor-pointer"
+    >
+      <RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+      Refresh
+    </Button>
+  );
+
+  if (!isMounted) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-violet-400" />
+      </div>
+    );
+  }
 
   if (error && history.length === 0) {
     return (
@@ -72,10 +84,13 @@ export default function Home() {
 
   return (
     <DashboardTemplate
-      header={Header}
+      title={Title}
+      refreshButton={RefreshButton}
       overview={<MetricsOverview latest={latest} />}
       charts={<HistorySection history={history} />}
       table={<DataTable data={history} />}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
     />
   );
 }

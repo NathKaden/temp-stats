@@ -23,7 +23,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         value={latest.ram_usage_percent.toFixed(1)}
         unit="%"
         icon={<Activity className="h-4 w-4" />}
-        description={`${latest.ram_usage_mb} / ${latest.ram_total_mb} MB`}
+        description={`${(latest.ram_usage_mb / 1024).toFixed(1)} / ${(latest.ram_total_mb / 1024).toFixed(1)} Go`}
       />
       <MetricCard
         title="Disk Usage"

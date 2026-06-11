@@ -15,29 +15,29 @@ interface DataTableProps {
 
 export const DataTable = ({ data }: DataTableProps) => {
   return (
-    <div className="rounded-md border bg-card">
+    <div className="rounded-xl glass-card-blended bg-card/40 backdrop-blur-xl overflow-hidden shadow-xl">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Timestamp</TableHead>
-            <TableHead>CPU Usage</TableHead>
-            <TableHead>CPU Temp</TableHead>
-            <TableHead>RAM Usage</TableHead>
-            <TableHead>Disk Usage</TableHead>
-            <TableHead>Net RX</TableHead>
+        <TableHeader className="bg-zinc-900/40">
+          <TableRow className="border-b border-border/40 hover:bg-transparent">
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Timestamp</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">CPU Usage</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">CPU Temp</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">RAM Usage</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Disk Usage</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Net RX</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="h-24 text-center">
-                No results.
+            <TableRow className="border-b border-border/40">
+              <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                No telemetry logs recorded.
               </TableCell>
             </TableRow>
           ) : (
             data.slice(0, 10).map((metric) => (
-              <TableRow key={metric.id}>
-                <TableCell className="font-medium">
+              <TableRow key={metric.id} className="border-b border-border/40 hover:bg-zinc-800/25 transition-colors duration-200">
+                <TableCell className="px-4 py-3 font-medium text-muted-foreground/90">
                   {(() => {
                     try {
                       return format(new Date(metric.timestamp), "yyyy-MM-dd HH:mm:ss");
@@ -46,11 +46,11 @@ export const DataTable = ({ data }: DataTableProps) => {
                     }
                   })()}
                 </TableCell>
-                <TableCell>{metric.cpu_usage}%</TableCell>
-                <TableCell>{metric.cpu_temp}°C</TableCell>
-                <TableCell>{metric.ram_usage_percent.toFixed(1)}%</TableCell>
-                <TableCell>{((metric.disk_usage_gb / metric.disk_total_gb) * 100).toFixed(1)}%</TableCell>
-                <TableCell>{metric.net_rx_mb} MB/s</TableCell>
+                <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.cpu_usage}%</TableCell>
+                <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.cpu_temp}°C</TableCell>
+                <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.ram_usage_percent.toFixed(1)}%</TableCell>
+                <TableCell className="px-4 py-3 font-semibold text-foreground">{((metric.disk_usage_gb / metric.disk_total_gb) * 100).toFixed(1)}%</TableCell>
+                <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.net_rx_mb} Mo/s</TableCell>
               </TableRow>
             ))
           )}
