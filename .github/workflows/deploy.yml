@@ -84,7 +84,7 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
+          key: ${{ secrets.SSH_KEY || secrets.GH_BESKARFOX_DEPLOY_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             cd ${{ secrets.VPS_DEPLOY_PATH || '/opt/temp-stats' }}
