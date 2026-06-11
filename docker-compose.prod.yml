@@ -22,11 +22,3 @@ services:
     environment:
       - BACKEND_API_URL=http://server:8000
     restart: always
-
-  watchtower:
-    image: containrrr/watchtower
-    container_name: pi-monitor-watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 300 --cleanup
-    restart: always
