@@ -2,24 +2,43 @@ version: '3.8'
 
 services:
   server:
-    build: ./server
+    image: ghcr.io/nathkaden/temp-stats-server:latest
     container_name: pi-monitor-server
-    ports:
-      - "8001:8000"
     volumes:
-      - ./server/data:/app/data
+      - ./server-data:/app/data
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
+    networks:
+      - proxy
+      - default
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temp-stats-server.rule=Host(`api.stats.beskarfox.com`)"
+      - "traefik.http.routers.temp-stats-server.entrypoints=websecure"
+      - "traefik.http.routers.temp-stats-server.tls=true"
+      - "traefik.http.routers.temp-stats-server.tls.certresolver=myresolver"
+      - "traefik.http.services.temp-stats-server.loadbalancer.server.port=8000"
 
   client:
-    build:
-      context: ./client
-      args:
-        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    image: ghcr.io/nathkaden/temp-stats-client:latest
     container_name: pi-monitor-client
-    ports:
-      - "3001:3000"
     depends_on:
       - server
+    environment:
+      - BACKEND_API_URL=http://server:8000
+    networks:
+      - proxy
+      - default
     restart: always
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temp-stats-client.rule=Host(`stats.beskarfox.com`)"
+      - "traefik.http.routers.temp-stats-client.entrypoints=websecure"
+      - "traefik.http.routers.temp-stats-client.tls=true"
+      - "traefik.http.routers.temp-stats-client.tls.certresolver=myresolver"
+      - "traefik.http.services.temp-stats-client.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true

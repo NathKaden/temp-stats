@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, Float, String, DateTime
 from datetime import datetime
-from database import Base
+from app.core.database import Base
 
 class SystemMetric(Base):
     __tablename__ = "system_metrics"
@@ -19,3 +19,4 @@ class SystemMetric(Base):
     net_rx_mb = Column(Float)
     net_tx_mb = Column(Float)
     uptime = Column(String)
+    power_usage_w = Column(Float, default=0.0)

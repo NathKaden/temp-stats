@@ -9,9 +9,7 @@ interface DashboardTemplateProps {
   table: ReactNode;
   activeTab: "dashboard" | "logs";
   setActiveTab: (tab: "dashboard" | "logs") => void;
-  selectedDevice: string;
-  setSelectedDevice: (device: string) => void;
-  devices: string[];
+  deviceName?: string;
 }
 
 export const DashboardTemplate = ({ 
@@ -22,9 +20,7 @@ export const DashboardTemplate = ({
   table, 
   activeTab, 
   setActiveTab,
-  selectedDevice,
-  setSelectedDevice,
-  devices
+  deviceName
 }: DashboardTemplateProps) => {
   return (
     <div className="relative flex min-h-screen flex-col md:flex-row bg-background text-foreground bg-grid-pattern overflow-hidden">
@@ -42,29 +38,15 @@ export const DashboardTemplate = ({
             <div className="flex-1">{title}</div>
           </div>
 
-          {/* Device Selector (Desktop) */}
-          {devices.length > 0 && (
-            <div className="px-3 mb-6">
-              <div className="relative w-full glass-btn-blended bg-zinc-900/50 hover:bg-zinc-800/50 rounded-xl transition-all duration-300">
-                <select
-                  value={selectedDevice}
-                  onChange={(e) => setSelectedDevice(e.target.value)}
-                  className="w-full bg-transparent text-xs font-semibold tracking-wider text-muted-foreground hover:text-foreground py-2.5 pl-3.5 pr-8 appearance-none cursor-pointer outline-none border-0"
-                >
-                  {devices.map((device) => (
-                    <option key={device} value={device} className="bg-zinc-950 text-foreground text-xs font-semibold py-2">
-                      {device.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-muted-foreground/60">
-                  <svg className="fill-current h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </div>
-              </div>
+          {/* Active Machine Display (Desktop) */}
+          <div className="px-3 mb-6">
+            <div className="flex flex-col gap-1.5 py-3 px-4 rounded-xl bg-zinc-900/30 border border-border/20 backdrop-blur-md">
+              <span className="text-[10px] font-bold tracking-widest text-muted-foreground/50 uppercase">Monitored Host</span>
+              <span className="text-xs font-mono font-semibold text-violet-300 truncate tracking-wide">
+                {deviceName || "loading..."}
+              </span>
             </div>
-          )}
+          </div>
 
           {/* Nav Links */}
           <nav className="px-3 space-y-1">
@@ -111,24 +93,9 @@ export const DashboardTemplate = ({
           <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-3">
             {title}
             <div className="flex items-center gap-2">
-              {devices.length > 0 && (
-                <div className="relative scale-90 glass-btn-blended bg-zinc-900/50 rounded-lg">
-                  <select
-                    value={selectedDevice}
-                    onChange={(e) => setSelectedDevice(e.target.value)}
-                    className="bg-transparent text-[10px] font-bold tracking-wider text-muted-foreground py-1.5 pl-2.5 pr-6 appearance-none cursor-pointer outline-none border-0"
-                  >
-                    {devices.map((device) => (
-                      <option key={device} value={device} className="bg-zinc-950 text-foreground text-[10px]">
-                        {device.toUpperCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-muted-foreground/60">
-                    <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                      <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                    </svg>
-                  </div>
+              {deviceName && (
+                <div className="px-2 py-1 rounded bg-zinc-900/40 border border-border/20 font-mono text-[10px] font-semibold text-violet-300 truncate max-w-[120px]">
+                  {deviceName}
                 </div>
               )}
               <div className="scale-90 transform origin-right">

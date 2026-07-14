@@ -13,4 +13,5 @@ export interface SystemMetric {
   net_rx_mb: number;
   net_tx_mb: number;
   uptime: string;
+  power_usage_w: number;
 }

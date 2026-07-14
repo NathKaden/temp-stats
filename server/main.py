@@ -1,15 +1,64 @@
+import sys
 import os
-from fastapi import FastAPI, Depends, HTTPException, Header
+import asyncio
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from typing import List, Optional
-import models, schemas, database
-from database import engine, get_db
 
-# Create database tables
-models.Base.metadata.create_all(bind=engine)
+# Add the server directory to python path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-app = FastAPI(title="Pi Stats API")
+from app.core.config import settings
+from app.core.database import engine, Base, SessionLocal
+from app.interfaces.api.routes import router as api_router
+from app.use_cases.metrics import MetricsUseCases
+
+# Initialize DB tables
+Base.metadata.create_all(bind=engine)
+
+background_tasks = set()
+
+async def cron_worker():
+    # Initial collection on startup to ensure database has data immediately
+    try:
+        db = SessionLocal()
+        use_cases = MetricsUseCases(db)
+        print("Running initial startup system metrics capture...")
+        use_cases.collect_and_save()
+        db.close()
+    except Exception as e:
+        print(f"Error during initial metrics capture: {e}")
+        
+    print(f"Background worker started. Collecting metrics every {settings.COLLECTION_INTERVAL_SECONDS} seconds.")
+    
+    while True:
+        try:
+            await asyncio.sleep(settings.COLLECTION_INTERVAL_SECONDS)
+            db = SessionLocal()
+            use_cases = MetricsUseCases(db)
+            print("Scheduled capture: collecting system metrics...")
+            use_cases.collect_and_save()
+            db.close()
+        except asyncio.CancelledError:
+            print("Cron worker background task cancelled.")
+            break
+        except Exception as e:
+            print(f"Error during scheduled metrics capture: {e}")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: launch background worker task
+    task = asyncio.create_task(cron_worker())
+    background_tasks.add(task)
+    task.add_done_callback(background_tasks.discard)
+    yield
+    # Shutdown: cancel background worker task
+    for task in background_tasks:
+        task.cancel()
+    if background_tasks:
+        await asyncio.gather(*background_tasks, return_exceptions=True)
+
+app = FastAPI(title="System Monitor API", lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(
@@ -20,44 +69,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-API_KEY = os.getenv("API_KEY", "your-secret-key")
-
-async def verify_api_key(x_api_key: str = Header(...)):
-    if x_api_key != API_KEY:
-        raise HTTPException(status_code=403, detail="Could not validate credentials")
-    return x_api_key
-
-@app.post("/api/metrics", response_model=schemas.SystemMetric)
-def create_metric(metric: schemas.SystemMetricCreate, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
-    db_metric = models.SystemMetric(**metric.dict())
-    db.add(db_metric)
-    db.commit()
-    db.refresh(db_metric)
-    return db_metric
-
-@app.get("/api/metrics", response_model=List[schemas.SystemMetric])
-def read_metrics(device_name: Optional[str] = None, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    query = db.query(models.SystemMetric)
-    if device_name:
-        query = query.filter(models.SystemMetric.device_name == device_name)
-    metrics = query.order_by(models.SystemMetric.timestamp.desc()).offset(skip).limit(limit).all()
-    return metrics
-
-@app.get("/api/metrics/latest", response_model=schemas.SystemMetric)
-def read_latest_metric(device_name: Optional[str] = None, db: Session = Depends(get_db)):
-    query = db.query(models.SystemMetric)
-    if device_name:
-        query = query.filter(models.SystemMetric.device_name == device_name)
-    metric = query.order_by(models.SystemMetric.timestamp.desc()).first()
-    if metric is None:
-        raise HTTPException(status_code=404, detail="No metrics found")
-    return metric
-
-@app.get("/api/devices", response_model=List[str])
-def read_devices(db: Session = Depends(get_db)):
-    devices = db.query(models.SystemMetric.device_name).distinct().all()
-    return [d[0] for d in devices if d[0] is not None]
+app.include_router(api_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

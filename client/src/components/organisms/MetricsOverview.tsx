@@ -1,6 +1,6 @@
 import { MetricCard } from "@/components/atoms/MetricCard";
 import { SystemMetric } from "@/types";
-import { Cpu, HardDrive, Layout, Activity } from "lucide-react";
+import { Cpu, HardDrive, Layout, Activity, Zap } from "lucide-react";
 
 interface MetricsOverviewProps {
   latest: SystemMetric | null;
@@ -10,7 +10,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
   if (!latest) return null;
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
       <MetricCard
         title="CPU Usage"
         value={latest.cpu_usage}
@@ -23,7 +23,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         value={latest.ram_usage_percent.toFixed(1)}
         unit="%"
         icon={<Activity className="h-4 w-4" />}
-        description={`${(latest.ram_usage_mb / 1024).toFixed(1)} / ${(latest.ram_total_mb / 1024).toFixed(1)} Go`}
+        description={`${(latest.ram_usage_mb / 1024).toFixed(1)} / ${(latest.ram_total_mb / 1024).toFixed(1)} GB`}
       />
       <MetricCard
         title="Disk Usage"
@@ -31,6 +31,13 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         unit="%"
         icon={<HardDrive className="h-4 w-4" />}
         description={`${latest.disk_usage_gb} / ${latest.disk_total_gb} GB`}
+      />
+      <MetricCard
+        title="Power"
+        value={(latest.power_usage_w || 0).toFixed(1)}
+        unit=" W"
+        icon={<Zap className="h-4 w-4" />}
+        description="Est. consumption"
       />
       <MetricCard
         title="Uptime"

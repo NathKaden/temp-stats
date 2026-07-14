@@ -8,21 +8,20 @@ const api = axios.create({
 });
 
 export const metricsService = {
-  getLatest: async (deviceName?: string): Promise<SystemMetric> => {
-    const params = deviceName ? { device_name: deviceName } : {};
-    const response = await api.get<SystemMetric>('/api/metrics/latest', { params });
+  getLatest: async (): Promise<SystemMetric> => {
+    const response = await api.get<SystemMetric>('/api/metrics/latest');
     return response.data;
   },
-  getHistory: async (limit: number = 100, deviceName?: string): Promise<SystemMetric[]> => {
-    const params: any = { limit };
-    if (deviceName) {
-      params.device_name = deviceName;
-    }
-    const response = await api.get<SystemMetric[]>('/api/metrics', { params });
+  getHistory: async (limit: number = 100): Promise<SystemMetric[]> => {
+    const response = await api.get<SystemMetric[]>('/api/metrics', { params: { limit } });
     return response.data;
   },
   getDevices: async (): Promise<string[]> => {
-    const response = await api.get<string[]>('/api/devices');
-    return response.data;
+    try {
+      const response = await api.get<string[]>('/api/devices');
+      return response.data;
+    } catch (e) {
+      return ["host-machine"];
+    }
   },
 };

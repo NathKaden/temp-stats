@@ -1,0 +1,24 @@
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local Database & data
+server/data/
+server-data/
+server/sql_app.db
+
+# Environment variables
+.env
+.env.local
+
+# Node local modules (frontend)
+client/node_modules/
+client/.next/
+client/out/

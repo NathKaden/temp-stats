@@ -15,6 +15,7 @@ class SystemMetricBase(BaseModel):
     net_rx_mb: float
     net_tx_mb: float
     uptime: str
+    power_usage_w: float
 
 class SystemMetricCreate(SystemMetricBase):
     pass

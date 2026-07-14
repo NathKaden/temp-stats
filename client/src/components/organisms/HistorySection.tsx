@@ -9,7 +9,7 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
   const reversedHistory = [...history].reverse();
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <MetricChart
         title="CPU Temperature"
         data={reversedHistory}
@@ -36,7 +36,14 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
         data={reversedHistory}
         dataKey="net_rx_mb"
         color="#f59e0b"
-        unit=" Mo/s"
+        unit=" MB/s"
+      />
+      <MetricChart
+        title="Power Consumption"
+        data={reversedHistory}
+        dataKey="power_usage_w"
+        color="#a78bfa"
+        unit=" W"
       />
     </div>
   );

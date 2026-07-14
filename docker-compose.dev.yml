@@ -2,23 +2,24 @@ version: '3.8'
 
 services:
   server:
-    image: ghcr.io/nathkaden/temp-stats-server:latest
+    build: ./server
     container_name: pi-monitor-server
     ports:
       - "8001:8000"
     volumes:
-      - ./server-data:/app/data
+      - ./server/data:/app/data
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
     restart: always
 
   client:
-    image: ghcr.io/nathkaden/temp-stats-client:latest
+    build:
+      context: ./client
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8001}
     container_name: pi-monitor-client
     ports:
       - "3001:3000"
     depends_on:
       - server
-    environment:
-      - BACKEND_API_URL=http://server:8000
     restart: always
