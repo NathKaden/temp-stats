@@ -24,7 +24,7 @@ services:
     depends_on:
       - server
     environment:
-      - BACKEND_API_URL=http://server:8000
+      - BACKEND_API_URL=https://api.stats.beskarfox.com
     networks:
       - proxy
       - default
