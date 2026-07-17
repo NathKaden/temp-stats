@@ -24,7 +24,7 @@ services:
       - server
     environment:
       - HOSTNAME=0.0.0.0
-      - BACKEND_API_URL=https://api.stats.beskarfox.com
+      - BACKEND_API_URL=http://server:8000
     networks:
       - proxy
     restart: always
