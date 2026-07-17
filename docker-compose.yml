@@ -1,43 +1,40 @@
+version: '3.8'
 services:
   server:
     image: ghcr.io/nathkaden/temp-stats-server:latest
-    container_name: nuc-monitor-server
-    hostname: nuc-box
+    container_name: nuc-stats-server
     volumes:
       - ./server-data:/app/data
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
     networks:
       - proxy
-      - default
     restart: always
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.temp-stats-server.rule=Host(`api.stats.beskarfox.com`)"
-      - "traefik.http.routers.temp-stats-server.entrypoints=websecure"
-      - "traefik.http.routers.temp-stats-server.tls=true"
-      - "traefik.http.routers.temp-stats-server.tls.certresolver=myresolver"
-      - "traefik.http.services.temp-stats-server.loadbalancer.server.port=8000"
-
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.nuc-stats-server.rule=Host(`api.stats.beskarfox.com`)"
+      - "traefik.http.routers.nuc-stats-server.entrypoints=websecure"
+      - "traefik.http.routers.nuc-stats-server.tls=true"
+      - "traefik.http.services.nuc-stats-server.loadbalancer.server.port=8000"
   client:
     image: ghcr.io/nathkaden/temp-stats-client:latest
-    container_name: nuc-monitor-client
+    container_name: nuc-stats-client
     depends_on:
       - server
     environment:
+      - HOSTNAME=0.0.0.0
       - BACKEND_API_URL=https://api.stats.beskarfox.com
     networks:
       - proxy
-      - default
     restart: always
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.temp-stats-client.rule=Host(`stats.beskarfox.com`)"
-      - "traefik.http.routers.temp-stats-client.entrypoints=websecure"
-      - "traefik.http.routers.temp-stats-client.tls=true"
-      - "traefik.http.routers.temp-stats-client.tls.certresolver=myresolver"
-      - "traefik.http.services.temp-stats-client.loadbalancer.server.port=3000"
-
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.nuc-stats-client.rule=Host(`stats.beskarfox.com`)"
+      - "traefik.http.routers.nuc-stats-client.entrypoints=websecure"
+      - "traefik.http.routers.nuc-stats-client.tls=true"
+      - "traefik.http.services.nuc-stats-client.loadbalancer.server.port=3000"
 networks:
   proxy:
     external: true
