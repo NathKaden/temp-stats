@@ -30,7 +30,7 @@ services:
       - server
     environment:
       - HOSTNAME=0.0.0.0
-      - BACKEND_API_URL=http://server:8000
+      - BACKEND_API_URL=http://nuc-stats-server:8000
     networks:
       - proxy
     restart: always
