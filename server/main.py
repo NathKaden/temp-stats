@@ -13,7 +13,26 @@ from app.core.database import engine, Base, SessionLocal
 from app.interfaces.api.routes import router as api_router
 from app.use_cases.metrics import MetricsUseCases
 
-# Initialize DB tables
+# Initialize DB tables with self-healing schema validation
+try:
+    if settings.DATABASE_URL.startswith("sqlite:///"):
+        db_path = settings.DATABASE_URL.replace("sqlite:///", "")
+        if os.path.exists(db_path):
+            from sqlalchemy import inspect
+            inspector = inspect(engine)
+            if inspector.has_table("system_metrics"):
+                columns = [c["name"] for c in inspector.get_columns("system_metrics")]
+                if "disk_sata_usage_gb" not in columns:
+                    print("Schema mismatch: 'disk_sata_usage_gb' column not found. Re-creating SQLite database...")
+                    engine.dispose()
+                    try:
+                        os.remove(db_path)
+                        print("Database file deleted successfully.")
+                    except Exception as delete_error:
+                        print(f"Could not delete database file: {delete_error}")
+except Exception as e:
+    print(f"Error during schema verification: {e}")
+
 Base.metadata.create_all(bind=engine)
 
 background_tasks = set()

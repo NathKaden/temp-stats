@@ -32,7 +32,7 @@ class SystemMetricsCollector:
         except Exception:
             pass
 
-        # 2. Try Linux sysfs (Raspberry Pi/generic Linux)
+        # 2. Try Linux sysfs (Intel NUC/generic Linux)
         try:
             if os.path.exists("/sys/class/thermal/thermal_zone0/temp"):
                 with open("/sys/class/thermal/thermal_zone0/temp", "r") as f:
@@ -68,17 +68,17 @@ class SystemMetricsCollector:
             
             parts = []
             if days > 0:
-                parts.append(f"{days} day{'s' if days > 1 else ''}")
+                parts.append(f"{days} jour{'s' if days > 1 else ''}")
             if hours > 0:
-                parts.append(f"{hours} hour{'s' if hours > 1 else ''}")
+                parts.append(f"{hours} heure{'s' if hours > 1 else ''}")
             if minutes > 0:
                 parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
                 
             if not parts:
-                return "up less than a minute"
-            return "up " + ", ".join(parts)
+                return "actif depuis moins d'une minute"
+            return "actif depuis " + ", ".join(parts)
         except Exception:
-            return "up unknown"
+            return "actif depuis durée inconnue"
 
     @classmethod
     def collect(cls) -> SystemMetricDomain:
@@ -94,15 +94,38 @@ class SystemMetricsCollector:
         # 3. Disk Temp
         disk_temp = cls.get_disk_temp(cpu_temp)
 
-        # 4. Disk Space Usage
+        # 4. Disk Space Usage (NVMe and SATA)
+        nvme_path = 'C:\\' if platform.system() == 'Windows' else '/'
         try:
-            # We measure the root directory
-            disk = psutil.disk_usage('/')
-            disk_total_gb = round(disk.total / (1024 ** 3), 1)
-            disk_usage_gb = round(disk.used / (1024 ** 3), 1)
+            disk_nvme = psutil.disk_usage(nvme_path)
+            disk_total_gb = round(disk_nvme.total / (1024 ** 3), 1)
+            disk_usage_gb = round(disk_nvme.used / (1024 ** 3), 1)
         except Exception:
-            disk_total_gb = 100.0
-            disk_usage_gb = 20.0
+            disk_total_gb = 250.0
+            disk_usage_gb = 85.0
+
+        disk_sata_total_gb = 480.0
+        disk_sata_usage_gb = 120.0
+        try:
+            sata_path = None
+            parts = psutil.disk_partitions(all=False)
+            for p in parts:
+                if 'cdrom' in p.opts or p.fstype == '':
+                    continue
+                if platform.system() == 'Windows':
+                    if p.mountpoint.upper() != 'C:\\':
+                        sata_path = p.mountpoint
+                        break
+                else:
+                    if p.mountpoint != '/' and (p.mountpoint.startswith('/mnt') or p.mountpoint.startswith('/media') or p.mountpoint.startswith('/data')):
+                        sata_path = p.mountpoint
+                        break
+            if sata_path:
+                disk_sata = psutil.disk_usage(sata_path)
+                disk_sata_total_gb = round(disk_sata.total / (1024 ** 3), 1)
+                disk_sata_usage_gb = round(disk_sata.used / (1024 ** 3), 1)
+        except Exception:
+            pass
 
         # 5. RAM Usage
         try:
@@ -152,6 +175,8 @@ class SystemMetricsCollector:
             disk_temp=disk_temp,
             disk_usage_gb=disk_usage_gb,
             disk_total_gb=disk_total_gb,
+            disk_sata_usage_gb=disk_sata_usage_gb,
+            disk_sata_total_gb=disk_sata_total_gb,
             ram_usage_mb=ram_usage_mb,
             ram_total_mb=ram_total_mb,
             ram_usage_percent=ram_usage_percent,

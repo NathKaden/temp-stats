@@ -82,10 +82,10 @@ docker-down:
 docker-logs:
 	docker compose -f docker-compose.dev.yml logs -f
 
-# 4. Helper target to send test metrics (to simulate the Raspberry Pi monitor script)
+# 4. Helper target to send test metrics (to simulate the NUC monitor script)
 send-mock:
 	@echo "$(GREEN)--> Sending a mock system metric to the running server...$(RESET)"
-	@PORT=$$(docker ps 2>/dev/null | grep -q pi-monitor-server && echo "8001" || echo "$(PORT_SERVER)"); \
+	@PORT=$$(docker ps 2>/dev/null | grep -q nuc-monitor-server && echo "8001" || echo "$(PORT_SERVER)"); \
 	API_URL="http://localhost:$$PORT/api/metrics"; \
 	echo "$(CYAN)Detected server on port $$PORT. Sending mock request to $$API_URL...$(RESET)"; \
 	RAND_TEMP=$$(awk 'BEGIN{srand(); printf "%.1f", 40+rand()*25}'); \

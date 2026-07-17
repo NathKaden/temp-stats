@@ -9,6 +9,8 @@ class SystemMetricBase(BaseModel):
     disk_temp: float
     disk_usage_gb: float
     disk_total_gb: float
+    disk_sata_usage_gb: float = 0.0
+    disk_sata_total_gb: float = 0.0
     ram_usage_mb: float
     ram_total_mb: float
     ram_usage_percent: float

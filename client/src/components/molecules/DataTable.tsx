@@ -19,20 +19,20 @@ export const DataTable = ({ data }: DataTableProps) => {
       <Table>
         <TableHeader className="bg-zinc-900/40">
           <TableRow className="border-b border-border/30 hover:bg-transparent">
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Timestamp</TableHead>
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">CPU Usage</TableHead>
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">CPU Temp</TableHead>
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">RAM Usage</TableHead>
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Disk Usage</TableHead>
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Net RX</TableHead>
-            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Power</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Date / Heure</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Utilisation CPU</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Temp. CPU</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Utilisation RAM</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Utilisation Disque</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Réseau Entrant</TableHead>
+            <TableHead className="h-11 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Puissance</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data.length === 0 ? (
             <TableRow className="border-b border-border/30">
               <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                No telemetry logs recorded.
+                Aucun journal de télémétrie enregistré.
               </TableCell>
             </TableRow>
           ) : (
@@ -51,7 +51,7 @@ export const DataTable = ({ data }: DataTableProps) => {
                 <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.cpu_temp}°C</TableCell>
                 <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.ram_usage_percent.toFixed(1)}%</TableCell>
                 <TableCell className="px-4 py-3 font-semibold text-foreground">{((metric.disk_usage_gb / metric.disk_total_gb) * 100).toFixed(1)}%</TableCell>
-                <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.net_rx_mb} MB/s</TableCell>
+                <TableCell className="px-4 py-3 font-semibold text-foreground">{metric.net_rx_mb} Mo/s</TableCell>
                 <TableCell className="px-4 py-3 font-semibold text-foreground">{(metric.power_usage_w || 0).toFixed(1)} W</TableCell>
               </TableRow>
             ))

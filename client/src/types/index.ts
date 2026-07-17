@@ -7,6 +7,8 @@ export interface SystemMetric {
   disk_temp: number;
   disk_usage_gb: number;
   disk_total_gb: number;
+  disk_sata_usage_gb: number;
+  disk_sata_total_gb: number;
   ram_usage_mb: number;
   ram_total_mb: number;
   ram_usage_percent: number;

@@ -12,6 +12,8 @@ class SystemMetricDomain:
         disk_temp: float = 0.0,
         disk_usage_gb: float = 0.0,
         disk_total_gb: float = 0.0,
+        disk_sata_usage_gb: float = 0.0,
+        disk_sata_total_gb: float = 0.0,
         ram_usage_mb: float = 0.0,
         ram_total_mb: float = 0.0,
         ram_usage_percent: float = 0.0,
@@ -28,6 +30,8 @@ class SystemMetricDomain:
         self.disk_temp = disk_temp
         self.disk_usage_gb = disk_usage_gb
         self.disk_total_gb = disk_total_gb
+        self.disk_sata_usage_gb = disk_sata_usage_gb
+        self.disk_sata_total_gb = disk_sata_total_gb
         self.ram_usage_mb = ram_usage_mb
         self.ram_total_mb = ram_total_mb
         self.ram_usage_percent = ram_usage_percent

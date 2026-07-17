@@ -1,43 +1,27 @@
-# Pi Monitor Dashboard
+# NUC Monitor Dashboard
 
-A full-stack monitoring solution for Raspberry Pi, featuring a FastAPI backend, a Next.js frontend with historical charts, and a lightweight bash client for data collection.
+A full-stack monitoring solution for Intel NUC (and other host machines), featuring a FastAPI backend with an integrated cron worker for local metrics collection, and a Next.js frontend with historical charts.
 
 ## Architecture
 
-- **Raspberry Pi (Client):** Collects system metrics (CPU, RAM, Disk, Network) and sends them to the VPS via a cron job.
-- **VPS Backend (FastAPI):** Receives metrics, stores them in an SQLite database, and provides API endpoints for the dashboard.
-- **VPS Frontend (Next.js):** Displays real-time overview and historical trends using Recharts and shadcn/ui.
+- **NUC Backend (FastAPI):** Collects local system metrics (CPU, RAM, Disk, Network, Temperature) on a scheduled background cron worker, stores them in an SQLite database, and provides API endpoints.
+- **NUC Frontend (Next.js):** Displays real-time overview and historical trends using Recharts and shadcn/ui.
 
 ## Setup Instructions
 
-### 1. VPS Deployment (Docker Compose)
+### 1. Deployment (Docker Compose)
 
-1.  Clone this repository on your VPS.
+1.  Clone this repository on your NUC.
 2.  Create a `.env` file from `.env.example`:
     ```bash
     cp .env.example .env
     ```
-3.  Adjust the `API_KEY` and `NEXT_PUBLIC_API_URL` in `.env`.
+3.  Adjust the `API_KEY` and `NEXT_PUBLIC_API_URL` in `.env`. You can also configure:
+    - `COLLECTION_INTERVAL_SECONDS`: The interval in seconds for the background cron worker to collect metrics (default is `3600` seconds / 1 hour).
+    - `POWER_BASE_W` and `POWER_MAX_W`: Power consumption estimates for your NUC.
 4.  Launch the services:
     ```bash
     docker-compose up -d --build
-    ```
-
-### 2. Raspberry Pi Configuration
-
-1.  Copy `pi_monitor.sh` to your Raspberry Pi.
-2.  Make it executable:
-    ```bash
-    chmod +x pi_monitor.sh
-    ```
-3.  Edit `pi_monitor.sh` and set your VPS IP and the `API_KEY` you configured in `.env`.
-4.  Add a cron job to run it every 5 minutes:
-    ```bash
-    crontab -e
-    ```
-    Add the following line:
-    ```cron
-    */5 * * * * /path/to/pi_monitor.sh
     ```
 
 ## Features

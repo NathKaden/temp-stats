@@ -16,7 +16,7 @@ export default function Home() {
   const [history, setHistory] = useState<SystemMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "logs">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "history" | "logs">("dashboard");
 
   const fetchData = async () => {
     try {
@@ -30,7 +30,7 @@ export default function Home() {
       setError(null);
     } catch (err) {
       console.error("Failed to fetch metrics:", err);
-      setError("Failed to fetch data from the server.");
+      setError("Échec de la récupération des données depuis le serveur.");
     } finally {
       setLoading(false);
     }
@@ -43,28 +43,15 @@ export default function Home() {
 
   useEffect(() => {
     if (isMounted) {
-      const interval = setInterval(() => fetchData(), 30000); // Refresh every 30s
+      const interval = setInterval(() => fetchData(), 10000); // Refresh every 10s
       return () => clearInterval(interval);
     }
   }, [isMounted]);
 
   const Title = (
     <h1 className="text-xl font-bold tracking-tight text-violet-300">
-      System Stats
+      Stats Système
     </h1>
-  );
-
-  const RefreshButton = (
-    <Button 
-      variant="outline" 
-      size="sm" 
-      onClick={() => fetchData()} 
-      disabled={loading}
-      className="w-full md:w-auto glass-btn-blended bg-zinc-900/40 hover:bg-zinc-800/40 text-muted-foreground hover:text-foreground transition-all duration-300 shadow-sm font-medium rounded-lg cursor-pointer"
-    >
-      <RefreshCw className={`mr-2 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-      Refresh
-    </Button>
   );
 
   if (!isMounted) {
@@ -79,9 +66,9 @@ export default function Home() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-bold text-destructive">Error</h2>
+          <h2 className="text-xl font-bold text-destructive">Erreur</h2>
           <p className="text-muted-foreground">{error}</p>
-          <Button className="mt-4" onClick={() => fetchData()}>Retry</Button>
+          <Button className="mt-4" onClick={() => fetchData()}>Réessayer</Button>
         </div>
       </div>
     );
@@ -90,7 +77,7 @@ export default function Home() {
   return (
     <DashboardTemplate
       title={Title}
-      refreshButton={RefreshButton}
+      refreshButton={null}
       overview={<MetricsOverview latest={latest} />}
       charts={<HistorySection history={history} />}
       table={<DataTable data={history} />}

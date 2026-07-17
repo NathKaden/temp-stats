@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./data/sql_app.db")
     
     # Power measurement defaults (in Watts)
-    # Default for Raspberry Pi 4 is around 3.0W idle, 7.0W peak.
+    # Default for Intel NUC is around 5.0W idle, 15.0W peak.
     # Default for mini-PCs is around 5.0W - 15.0W.
     # Users can override these via environment variables.
     POWER_BASE_W: float = float(os.getenv("POWER_BASE_W", "5.0"))

@@ -13,6 +13,8 @@ class SystemMetric(Base):
     disk_temp = Column(Float)
     disk_usage_gb = Column(Float)
     disk_total_gb = Column(Float)
+    disk_sata_usage_gb = Column(Float)
+    disk_sata_total_gb = Column(Float)
     ram_usage_mb = Column(Float)
     ram_total_mb = Column(Float)
     ram_usage_percent = Column(Float)

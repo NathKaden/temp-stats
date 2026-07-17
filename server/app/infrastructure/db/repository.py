@@ -16,6 +16,8 @@ class MetricsRepository:
             disk_temp=metric.disk_temp,
             disk_usage_gb=metric.disk_usage_gb,
             disk_total_gb=metric.disk_total_gb,
+            disk_sata_usage_gb=metric.disk_sata_usage_gb,
+            disk_sata_total_gb=metric.disk_sata_total_gb,
             ram_usage_mb=metric.ram_usage_mb,
             ram_total_mb=metric.ram_total_mb,
             ram_usage_percent=metric.ram_usage_percent,
