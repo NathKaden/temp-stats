@@ -1,6 +1,6 @@
 import { MetricCard } from "@/components/atoms/MetricCard";
 import { SystemMetric } from "@/types";
-import { Cpu, HardDrive, ChartNoAxesColumnIncreasing, MemoryStick, Zap } from "lucide-react";
+import { Cpu, HardDrive, ChartNoAxesColumnIncreasing, MemoryStick, Zap, ArrowUpDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
@@ -278,7 +278,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       {/* Others Section */}
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Activité</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <MetricCard
             title="Puissance"
             value={(latest.power_usage_w || 0).toFixed(1)}
@@ -286,6 +286,14 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
             icon={<Zap className="h-6 w-6" />}
             description="Consommation estimée"
             color="yellow"
+          />
+          <MetricCard
+            title="Réseau"
+            value={(latest.net_rx_mb + latest.net_tx_mb).toFixed(2)}
+            unit=" Mo/s"
+            icon={<ArrowUpDown className="h-6 w-6" />}
+            description={`Entrant : ${latest.net_rx_mb.toFixed(2)} Mo/s • Sortant : ${latest.net_tx_mb.toFixed(2)} Mo/s`}
+            color="indigo"
           />
           <MetricCard
             title="Temps d'activité"

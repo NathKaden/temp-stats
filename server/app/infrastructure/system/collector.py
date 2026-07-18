@@ -202,6 +202,34 @@ class SystemMetricsCollector:
             return None
 
     @classmethod
+    def get_host_net_bytes(cls):
+        total_rx = 0
+        total_tx = 0
+        try:
+            net_dir = '/sys/class/net'
+            if os.path.exists(net_dir):
+                has_interfaces = False
+                for iface in os.listdir(net_dir):
+                    # Exclude loopback, docker bridges, and virtual ethernet pairs
+                    if iface == 'lo' or iface.startswith('docker') or iface.startswith('br-') or iface.startswith('veth'):
+                        continue
+                    
+                    rx_file = f'{net_dir}/{iface}/statistics/rx_bytes'
+                    tx_file = f'{net_dir}/{iface}/statistics/tx_bytes'
+                    
+                    if os.path.exists(rx_file) and os.path.exists(tx_file):
+                        with open(rx_file, 'r') as f:
+                            total_rx += int(f.read().strip())
+                        with open(tx_file, 'r') as f:
+                            total_tx += int(f.read().strip())
+                        has_interfaces = True
+                if has_interfaces:
+                    return total_rx, total_tx
+        except Exception:
+            pass
+        return None
+
+    @classmethod
     def collect(cls) -> SystemMetricDomain:
         # Get start RAPL energy and timestamp
         start_energy = cls.get_rapl_energy()
@@ -290,13 +318,24 @@ class SystemMetricsCollector:
 
         # 6. Network stats
         try:
-            net_start = psutil.net_io_counters()
+            host_bytes_start = cls.get_host_net_bytes()
+            psutil_start = psutil.net_io_counters()
+            
             time.sleep(1.0)
-            net_end = psutil.net_io_counters()
+            
+            host_bytes_end = cls.get_host_net_bytes()
+            psutil_end = psutil.net_io_counters()
+
+            if host_bytes_start is not None and host_bytes_end is not None:
+                rx_diff = host_bytes_end[0] - host_bytes_start[0]
+                tx_diff = host_bytes_end[1] - host_bytes_start[1]
+            else:
+                rx_diff = psutil_end.bytes_recv - psutil_start.bytes_recv
+                tx_diff = psutil_end.bytes_sent - psutil_start.bytes_sent
 
             # Calculate speed in MB/s (1024*1024 bytes)
-            net_rx_mb = round((net_end.bytes_recv - net_start.bytes_recv) / (1024 * 1024), 2)
-            net_tx_mb = round((net_end.bytes_sent - net_start.bytes_sent) / (1024 * 1024), 2)
+            net_rx_mb = round(rx_diff / (1024 * 1024), 2)
+            net_tx_mb = round(tx_diff / (1024 * 1024), 2)
 
             # Prevent negative speeds (e.g. if counter resets)
             if net_rx_mb < 0: net_rx_mb = 0.0
