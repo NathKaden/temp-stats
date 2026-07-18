@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
+async function handleProxy(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  method: string,
+  pathPromise: Promise<{ path: string[] }>
 ) {
   try {
-    const { path } = await params;
+    const { path } = await pathPromise;
     const pathString = path.join("/");
     const searchParams = request.nextUrl.searchParams.toString();
     
@@ -13,12 +14,30 @@ export async function GET(
     const backendUrl = process.env.BACKEND_API_URL || "http://nuc-stats-server:8000";
     const targetUrl = `${backendUrl}/api/${pathString}${searchParams ? `?${searchParams}` : ""}`;
 
-    const response = await fetch(targetUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Forward the API key if present in the incoming headers
+    const apiKey = request.headers.get("x-api-key");
+    if (apiKey) {
+      headers["x-api-key"] = apiKey;
+    }
+
+    const fetchOptions: RequestInit = {
+      method: method,
+      headers: headers,
+    };
+
+    // Forward the request body for POST requests
+    if (method === "POST") {
+      const bodyText = await request.text();
+      if (bodyText) {
+        fetchOptions.body = bodyText;
+      }
+    }
+
+    const response = await fetch(targetUrl, fetchOptions);
 
     if (!response.ok) {
       return new NextResponse(await response.text(), { status: response.status });
@@ -33,4 +52,18 @@ export async function GET(
       { status: 502 }
     );
   }
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return handleProxy(request, "GET", params);
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
+) {
+  return handleProxy(request, "POST", params);
 }
