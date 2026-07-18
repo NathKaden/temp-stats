@@ -11,6 +11,7 @@ services:
       - /mnt/backup:/mnt/backup:ro
       - /opt:/opt:ro
       - /sys:/sys:ro
+      - /proc:/host/proc:ro
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
       - COLLECTION_INTERVAL_SECONDS=${COLLECTION_INTERVAL_SECONDS:-3600}
