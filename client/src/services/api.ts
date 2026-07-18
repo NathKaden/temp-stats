@@ -5,12 +5,9 @@ let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 // Automatically detect backend port based on client port in dev environment
 if (typeof window !== 'undefined' && !API_URL) {
-  const hostname = window.location.hostname;
   const port = window.location.port;
   
-  if (hostname === 'stats.beskarfox.com') {
-    API_URL = 'https://api.stats.beskarfox.com';
-  } else if (port === '3001') {
+  if (port === '3001') {
     API_URL = 'http://localhost:8001';
   } else if (port === '3000') {
     API_URL = 'http://localhost:8000';
