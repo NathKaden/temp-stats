@@ -10,6 +10,9 @@ services:
       - ./server-data:/app/data
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
+      - COLLECTION_INTERVAL_SECONDS=${COLLECTION_INTERVAL_SECONDS:-3600}
+      - POWER_BASE_W=${POWER_BASE_W:-5.0}
+      - POWER_MAX_W=${POWER_MAX_W:-15.0}
     networks:
       - proxy
     restart: always
