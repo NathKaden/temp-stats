@@ -27,7 +27,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         { name: "Outline", value: parsed.Outline || 0, color: "#3b82f6" },     // Blue
         { name: "Stats", value: parsed.Stats || 0, color: "#ec4899" },         // Pink
         { name: "Autres", value: parsed.Autres || 0, color: "#f97316" },       // Orange
-        { name: "Disponible", value: nvmeFree, color: "#27272a" }              // Zinc-800
+        { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" } // Semi-transparent white
       ].filter(item => item.value > 0);
     }
   } catch (e) {
@@ -41,7 +41,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       { name: "Outline", value: parseFloat((nvmeUsed * 0.15).toFixed(1)), color: "#3b82f6" },
       { name: "Stats", value: 1.2, color: "#ec4899" },
       { name: "Autres", value: parseFloat((nvmeUsed - (nvmeUsed * 0.35 + nvmeUsed * 0.15 + 1.2)).toFixed(1)), color: "#f97316" },
-      { name: "Disponible", value: nvmeFree, color: "#27272a" }
+      { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
     ].filter(item => item.value > 0);
   }
 
@@ -113,6 +113,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                       outerRadius={46}
                       paddingAngle={2}
                       dataKey="value"
+                      stroke="none"
                     >
                       {servicesData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />

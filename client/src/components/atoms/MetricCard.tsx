@@ -95,7 +95,7 @@ export const MetricCard = ({
                 cx="40"
                 cy="40"
                 r={radius}
-                className="stroke-zinc-800/50"
+                className="stroke-white/10"
                 strokeWidth={strokeWidth}
                 fill="transparent"
               />
