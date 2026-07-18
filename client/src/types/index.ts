@@ -16,4 +16,5 @@ export interface SystemMetric {
   net_tx_mb: number;
   uptime: string;
   power_usage_w: number;
+  disk_services_json?: string;
 }

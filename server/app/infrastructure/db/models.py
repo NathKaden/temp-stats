@@ -22,3 +22,4 @@ class SystemMetric(Base):
     net_tx_mb = Column(Float)
     uptime = Column(String)
     power_usage_w = Column(Float, default=0.0)
+    disk_services_json = Column(String, nullable=True)

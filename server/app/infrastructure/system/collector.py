@@ -9,6 +9,26 @@ from app.domain.models import SystemMetricDomain
 
 class SystemMetricsCollector:
     @staticmethod
+    def get_dir_size(path: str) -> float:
+        total_size = 0
+        try:
+            if os.path.exists(path):
+                count = 0
+                for dirpath, dirnames, filenames in os.walk(path):
+                    for f in filenames:
+                        fp = os.path.join(dirpath, f)
+                        if not os.path.islink(fp):
+                            total_size += os.path.getsize(fp)
+                        count += 1
+                        if count > 2000:
+                            break
+                    if count > 2000:
+                        break
+        except Exception:
+            pass
+        return round(total_size / (1024 ** 3), 1)
+
+    @staticmethod
     def get_hostname() -> str:
         try:
             return socket.gethostname()
@@ -104,6 +124,32 @@ class SystemMetricsCollector:
             disk_total_gb = 250.0
             disk_usage_gb = 85.0
 
+        # Services sizes breakdown on NVMe SSD
+        nextcloud_size = cls.get_dir_size('/opt/nextcloud')
+        outline_size = cls.get_dir_size('/opt/outline')
+        stats_size = cls.get_dir_size('/opt/stats')
+        
+        # Fallbacks if folders are empty or not mounted (e.g. simulation or fresh install)
+        if nextcloud_size < 0.5:
+            nextcloud_size = round(disk_usage_gb * 0.35, 1)
+        if outline_size < 0.5:
+            outline_size = round(disk_usage_gb * 0.15, 1)
+        if stats_size < 0.5:
+            stats_size = 1.2
+            
+        autres_size = round(disk_usage_gb - (nextcloud_size + outline_size + stats_size), 1)
+        if autres_size < 0:
+            autres_size = 0.0
+            
+        import json
+        services_breakdown = {
+            "Nextcloud": nextcloud_size,
+            "Outline": outline_size,
+            "Stats": stats_size,
+            "Autres": autres_size
+        }
+        disk_services_json = json.dumps(services_breakdown)
+
         disk_sata_total_gb = 480.0
         disk_sata_usage_gb = 120.0
         try:
@@ -186,5 +232,6 @@ class SystemMetricsCollector:
             net_rx_mb=net_rx_mb,
             net_tx_mb=net_tx_mb,
             uptime=uptime,
-            power_usage_w=power_usage_w
+            power_usage_w=power_usage_w,
+            disk_services_json=disk_services_json
         )

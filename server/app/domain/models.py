@@ -20,7 +20,8 @@ class SystemMetricDomain:
         net_rx_mb: float = 0.0,
         net_tx_mb: float = 0.0,
         uptime: str = "unknown",
-        power_usage_w: float = 0.0
+        power_usage_w: float = 0.0,
+        disk_services_json: Optional[str] = None
     ):
         self.id = id
         self.timestamp = timestamp or datetime.utcnow()
@@ -39,3 +40,4 @@ class SystemMetricDomain:
         self.net_tx_mb = net_tx_mb
         self.uptime = uptime
         self.power_usage_w = power_usage_w
+        self.disk_services_json = disk_services_json
