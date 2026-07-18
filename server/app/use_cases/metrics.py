@@ -19,3 +19,6 @@ class MetricsUseCases:
 
     def get_history(self, limit: int = 100):
         return self.repository.get_history(limit)
+
+    def clear_history(self):
+        self.repository.clear_all()

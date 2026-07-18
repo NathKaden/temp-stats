@@ -36,3 +36,7 @@ class MetricsRepository:
 
     def get_history(self, limit: int = 100) -> List[SystemMetric]:
         return self.db.query(SystemMetric).order_by(SystemMetric.timestamp.desc()).limit(limit).all()
+
+    def clear_all(self):
+        self.db.query(SystemMetric).delete()
+        self.db.commit()

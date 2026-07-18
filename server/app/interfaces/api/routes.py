@@ -54,6 +54,23 @@ def read_latest_metric(db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="No metrics found")
     return metric
 
+@router.post("/metrics/collect", response_model=schemas.SystemMetric)
+def force_collect(db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
+    use_cases = MetricsUseCases(db)
+    try:
+        return use_cases.collect_and_save()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to collect metrics: {str(e)}")
+
+@router.post("/metrics/reset")
+def reset_metrics(db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
+    use_cases = MetricsUseCases(db)
+    try:
+        use_cases.clear_history()
+        return {"status": "success", "message": "All metrics data has been cleared"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear metrics: {str(e)}")
+
 @router.get("/devices", response_model=List[str])
 def read_devices(db: Session = Depends(get_db)):
     use_cases = MetricsUseCases(db)
