@@ -141,7 +141,7 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
               </>
             ) : (
               <div className="col-span-2 flex items-center justify-center p-6 rounded-xl bg-black/20 border border-white/5 text-xs text-muted-foreground/50 font-medium text-center">
-                Site principal en production
+                TODO
               </div>
             )}
           </div>

@@ -126,22 +126,22 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                   </div>
                 </div>
 
-                {/* Legend Grid */}
-                <div className="grid grid-cols-2 gap-3 w-full mt-1">
-                  {ramServicesData.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs">
-                      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                      <span className="font-semibold text-foreground/90">{item.name} :</span>
-                      <span className="text-muted-foreground">
-                        {item.name === "Disponible"
-                          ? `${item.value.toFixed(1)} Go`
-                          : item.value >= 1.0
-                            ? `${item.value.toFixed(1)} Go`
-                            : `${(item.value * 1024).toFixed(0)} Mo`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+                  {/* Legend Grid */}
+                  <div className="grid grid-cols-[max-content_max-content] gap-x-4 gap-y-1 mt-1">
+                      {ramServicesData.map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="font-semibold text-foreground/90">{item.name} :</span>
+                              <span className="text-muted-foreground">
+        {item.name === "Disponible"
+            ? `${item.value.toFixed(1)} Go`
+            : item.value >= 1.0
+                ? `${item.value.toFixed(1)} Go`
+                : `${(item.value * 1024).toFixed(0)} Mo`}
+      </span>
+                          </div>
+                      ))}
+                  </div>
               </div>
 
               {/* Right Donut Chart */}
@@ -207,15 +207,15 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                 </div>
 
                 {/* Legend Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mt-1">
-                  {servicesData.map((item, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs">
-                      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                      <span className="font-semibold text-foreground/90">{item.name} :</span>
-                      <span className="text-muted-foreground">{item.value.toFixed(1)} Go</span>
-                    </div>
-                  ))}
-                </div>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                      {servicesData.map((item, idx) => (
+                          <div key={idx} className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap">
+                              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="font-semibold text-foreground/90">{item.name} :</span>
+                              <span className="text-muted-foreground">{item.value.toFixed(1)} Go</span>
+                          </div>
+                      ))}
+                  </div>
               </div>
 
               {/* Right Donut Chart */}
