@@ -17,4 +17,5 @@ export interface SystemMetric {
   uptime: string;
   power_usage_w: number;
   disk_services_json?: string;
+  cpu_name?: string;
 }

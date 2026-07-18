@@ -22,8 +22,8 @@ try:
             inspector = inspect(engine)
             if inspector.has_table("system_metrics"):
                 columns = [c["name"] for c in inspector.get_columns("system_metrics")]
-                if "disk_sata_usage_gb" not in columns or "disk_services_json" not in columns:
-                    print("Schema mismatch: 'disk_services_json' column not found. Re-creating SQLite database...")
+                if "disk_sata_usage_gb" not in columns or "disk_services_json" not in columns or "cpu_name" not in columns:
+                    print("Schema mismatch: 'cpu_name' column not found. Re-creating SQLite database...")
                     engine.dispose()
                     try:
                         os.remove(db_path)

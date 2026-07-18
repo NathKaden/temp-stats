@@ -19,6 +19,7 @@ class SystemMetricBase(BaseModel):
     uptime: str
     power_usage_w: float
     disk_services_json: Optional[str] = None
+    cpu_name: Optional[str] = None
 
 class SystemMetricCreate(SystemMetricBase):
     pass

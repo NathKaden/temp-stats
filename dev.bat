@@ -41,9 +41,15 @@ goto MENU
 echo.
 echo Starting Local Dev (spawning backend and frontend terminals)...
 
+:: Create Virtual Environment if it does not exist
+if not exist server\.venv (
+    echo Creating virtual environment in server\.venv...
+    python -m venv server\.venv
+)
+
 :: Spawn Backend
 echo Launching Backend (FastAPI)...
-start "Backend (FastAPI)" cmd /k "cd server && if not exist .venv python -m venv .venv && call .venv\Scripts\activate.bat && python -m pip install --upgrade pip && pip install -r requirements.txt && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
+start "Backend (FastAPI)" cmd /k "cd server && call .venv\Scripts\activate.bat && python -m pip install --upgrade pip && pip install -r requirements.txt && uvicorn main:app --reload --host 0.0.0.0 --port 8000"
 
 :: Spawn Frontend
 echo Launching Frontend (Next.js)...

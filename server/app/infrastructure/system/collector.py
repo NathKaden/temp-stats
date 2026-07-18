@@ -29,6 +29,24 @@ class SystemMetricsCollector:
         return round(total_size / (1024 ** 3), 1)
 
     @staticmethod
+    def get_cpu_name() -> str:
+        try:
+            if platform.system() == "Windows":
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+                name = winreg.QueryValueEx(key, "ProcessorNameString")[0]
+                return name.strip()
+            elif platform.system() == "Linux":
+                if os.path.exists("/proc/cpuinfo"):
+                    with open("/proc/cpuinfo", "r") as f:
+                        for line in f:
+                            if "model name" in line:
+                                return line.split(":")[1].strip()
+        except Exception:
+            pass
+        return platform.processor() or "Intel Core Processor"
+
+    @staticmethod
     def get_hostname() -> str:
         try:
             return socket.gethostname()
@@ -125,17 +143,13 @@ class SystemMetricsCollector:
             disk_usage_gb = 85.0
 
         # Services sizes breakdown on NVMe SSD
+        stats_path = '/opt/stats'
+        if platform.system() == 'Windows':
+            stats_path = os.getcwd()
+
         nextcloud_size = cls.get_dir_size('/opt/nextcloud')
         outline_size = cls.get_dir_size('/opt/outline')
-        stats_size = cls.get_dir_size('/opt/stats')
-        
-        # Fallbacks if folders are empty or not mounted (e.g. simulation or fresh install)
-        if nextcloud_size < 0.5:
-            nextcloud_size = round(disk_usage_gb * 0.35, 1)
-        if outline_size < 0.5:
-            outline_size = round(disk_usage_gb * 0.15, 1)
-        if stats_size < 0.5:
-            stats_size = 1.2
+        stats_size = cls.get_dir_size(stats_path)
             
         autres_size = round(disk_usage_gb - (nextcloud_size + outline_size + stats_size), 1)
         if autres_size < 0:
@@ -217,6 +231,8 @@ class SystemMetricsCollector:
         noise = random.uniform(-0.1, 0.1)
         power_usage_w = max(settings.POWER_BASE_W, round(power_usage_w + noise, 2))
 
+        cpu_name = cls.get_cpu_name()
+
         return SystemMetricDomain(
             device_name=device_name,
             cpu_temp=cpu_temp,
@@ -233,5 +249,6 @@ class SystemMetricsCollector:
             net_tx_mb=net_tx_mb,
             uptime=uptime,
             power_usage_w=power_usage_w,
-            disk_services_json=disk_services_json
+            disk_services_json=disk_services_json,
+            cpu_name=cpu_name
         )

@@ -12,13 +12,13 @@ interface DashboardTemplateProps {
   deviceName?: string;
 }
 
-export const DashboardTemplate = ({ 
-  title, 
-  refreshButton, 
-  overview, 
-  charts, 
-  table, 
-  activeTab, 
+export const DashboardTemplate = ({
+  title,
+  refreshButton,
+  overview,
+  charts,
+  table,
+  activeTab,
   setActiveTab,
   deviceName
 }: DashboardTemplateProps) => {
@@ -47,7 +47,6 @@ export const DashboardTemplate = ({
         <div className="flex flex-col h-full pt-6 pb-0 overflow-y-auto">
           {/* Logo / Title */}
           <div className="flex items-center px-6 mb-8 gap-2.5">
-            <span className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
             <div className="flex-1">{title}</div>
           </div>
 

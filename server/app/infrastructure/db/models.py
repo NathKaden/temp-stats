@@ -23,3 +23,4 @@ class SystemMetric(Base):
     uptime = Column(String)
     power_usage_w = Column(Float, default=0.0)
     disk_services_json = Column(String, nullable=True)
+    cpu_name = Column(String, nullable=True)

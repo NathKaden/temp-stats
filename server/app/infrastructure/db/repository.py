@@ -25,7 +25,8 @@ class MetricsRepository:
             net_tx_mb=metric.net_tx_mb,
             uptime=metric.uptime,
             power_usage_w=metric.power_usage_w,
-            disk_services_json=metric.disk_services_json
+            disk_services_json=metric.disk_services_json,
+            cpu_name=metric.cpu_name
         )
         self.db.add(db_metric)
         self.db.commit()

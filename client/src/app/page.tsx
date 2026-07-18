@@ -50,7 +50,7 @@ export default function Home() {
 
   const Title = (
     <h1 className="text-xl font-bold tracking-tight text-violet-300">
-      Stats Système
+      Dashboard
     </h1>
   );
 

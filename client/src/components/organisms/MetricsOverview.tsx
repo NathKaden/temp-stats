@@ -1,6 +1,6 @@
 import { MetricCard } from "@/components/atoms/MetricCard";
 import { SystemMetric } from "@/types";
-import { Cpu, HardDrive, Layout, Activity, Zap } from "lucide-react";
+import { Cpu, HardDrive, Layout, MemoryStick, Zap } from "lucide-react";
 import { Card, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 
@@ -36,11 +36,13 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
 
   // Fallback if JSON is empty or invalid
   if (servicesData.length === 0) {
+    const statsMock = 1.2;
+    const statsVal = Math.min(nvmeUsed, statsMock);
+    const autresVal = Math.max(0, parseFloat((nvmeUsed - statsVal).toFixed(1)));
+
     servicesData = [
-      { name: "Nextcloud", value: parseFloat((nvmeUsed * 0.35).toFixed(1)), color: "#a855f7" },
-      { name: "Outline", value: parseFloat((nvmeUsed * 0.15).toFixed(1)), color: "#3b82f6" },
-      { name: "Stats", value: 1.2, color: "#ec4899" },
-      { name: "Autres", value: parseFloat((nvmeUsed - (nvmeUsed * 0.35 + nvmeUsed * 0.15 + 1.2)).toFixed(1)), color: "#f97316" },
+      { name: "Stats", value: statsVal, color: "#ec4899" },
+      { name: "Autres", value: autresVal, color: "#f97316" },
       { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
     ].filter(item => item.value > 0);
   }
@@ -52,19 +54,21 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 ml-1">Performances</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <MetricCard
-            title="Processeur (CPU)"
+            title="Processeur"
+            subTitle="CPU"
             value={latest.cpu_usage}
             unit="%"
             icon={<Cpu className="h-4 w-4" />}
-            description={`Température : ${latest.cpu_temp}°C`}
+            description={latest.cpu_name ? `${latest.cpu_name} | Température : ${latest.cpu_temp}°C` : `Température : ${latest.cpu_temp}°C`}
             color="blue"
             variant="circle"
           />
           <MetricCard
-            title="Mémoire (RAM)"
+            title="Mémoire"
+            subTitle="RAM"
             value={latest.ram_usage_percent.toFixed(1)}
             unit="%"
-            icon={<Activity className="h-4 w-4" />}
+            icon={<MemoryStick className="h-4 w-4" />}
             description={`Utilisé : ${(latest.ram_usage_mb / 1024).toFixed(1)} / ${(latest.ram_total_mb / 1024).toFixed(1)} Go`}
             color="red"
             variant="circle"
@@ -72,7 +76,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         </div>
       </div>
 
-      {/* Disks SSD Section (Increased gap & circles / pie chart) */}
+      {/* Disks SSD Section */}
       <div className="flex flex-col gap-4">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50 ml-1">Stockage SSD</h2>
         <div className="flex flex-col gap-4">
@@ -83,7 +87,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               {/* Left Details & Legend */}
               <div className="flex-1 flex flex-col gap-4 w-full">
                 <div className="flex items-center gap-3">
-                  <div className="bg-zinc-800/30 p-2 rounded-lg border text-orange-400 border-orange-500/30 transition-all duration-300">
+                  <div className="text-orange-400 transition-all duration-300 shrink-0">
                     <HardDrive className="h-4 w-4" />
                   </div>
                   <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground/80">SSD NVMe (Système & Services)</CardTitle>
