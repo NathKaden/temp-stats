@@ -108,18 +108,21 @@ class SystemMetricsCollector:
         disk_sata_usage_gb = 120.0
         try:
             sata_path = None
-            parts = psutil.disk_partitions(all=False)
-            for p in parts:
-                if 'cdrom' in p.opts or p.fstype == '':
-                    continue
-                if platform.system() == 'Windows':
-                    if p.mountpoint.upper() != 'C:\\':
-                        sata_path = p.mountpoint
-                        break
-                else:
-                    if p.mountpoint != '/' and (p.mountpoint.startswith('/mnt') or p.mountpoint.startswith('/media') or p.mountpoint.startswith('/data')):
-                        sata_path = p.mountpoint
-                        break
+            if os.path.exists('/mnt/backup'):
+                sata_path = '/mnt/backup'
+            else:
+                parts = psutil.disk_partitions(all=False)
+                for p in parts:
+                    if 'cdrom' in p.opts or p.fstype == '':
+                        continue
+                    if platform.system() == 'Windows':
+                        if p.mountpoint.upper() != 'C:\\':
+                            sata_path = p.mountpoint
+                            break
+                    else:
+                        if p.mountpoint != '/' and (p.mountpoint.startswith('/mnt') or p.mountpoint.startswith('/media') or p.mountpoint.startswith('/data')):
+                            sata_path = p.mountpoint
+                            break
             if sata_path:
                 disk_sata = psutil.disk_usage(sata_path)
                 disk_sata_total_gb = round(disk_sata.total / (1024 ** 3), 1)
