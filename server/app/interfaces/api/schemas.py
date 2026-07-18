@@ -20,6 +20,7 @@ class SystemMetricBase(BaseModel):
     power_usage_w: float
     disk_services_json: Optional[str] = None
     cpu_name: Optional[str] = None
+    ram_services_json: Optional[str] = None
 
 class SystemMetricCreate(SystemMetricBase):
     pass

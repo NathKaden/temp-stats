@@ -18,4 +18,5 @@ export interface SystemMetric {
   power_usage_w: number;
   disk_services_json?: string;
   cpu_name?: string;
+  ram_services_json?: string;
 }

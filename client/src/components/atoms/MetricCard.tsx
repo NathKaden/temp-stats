@@ -2,13 +2,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ReactNode } from "react";
 
 interface MetricCardProps {
-  title: string;
+  title: ReactNode;
   subTitle?: string;
   value: string | number;
   unit?: string;
   icon?: ReactNode;
   description?: string;
-  color?: "blue" | "red" | "orange" | "yellow" | "indigo";
+  color?: "blue" | "red" | "orange" | "yellow" | "yellow-muted" | "indigo";
   variant?: "progress" | "circle";
 }
 
@@ -33,10 +33,10 @@ export const MetricCard = ({
       cardStyle: "hover:shadow-[0_0_20px_rgba(59,130,246,0.12)]",
     },
     red: {
-      bar: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]",
-      stroke: "stroke-red-500 drop-shadow-[0_0_4px_rgba(239,68,68,0.4)]",
-      iconColor: "text-red-400",
-      cardStyle: "hover:shadow-[0_0_20px_rgba(239,68,68,0.12)]",
+      bar: "bg-[#ff2c4c] shadow-[0_0_8px_rgba(255,44,76,0.5)]",
+      stroke: "stroke-[#ff2c4c] drop-shadow-[0_0_4px_rgba(255,44,76,0.4)]",
+      iconColor: "text-[#ff2c4c]",
+      cardStyle: "hover:shadow-[0_0_20px_rgba(255,44,76,0.18)]",
     },
     orange: {
       bar: "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]",
@@ -50,6 +50,12 @@ export const MetricCard = ({
       iconColor: "text-yellow-400",
       cardStyle: "hover:shadow-[0_0_20px_rgba(234,179,8,0.12)]",
     },
+    "yellow-muted": {
+      bar: "bg-yellow-500/60 shadow-[0_0_6px_rgba(234,179,8,0.3)]",
+      stroke: "stroke-yellow-500/60 drop-shadow-[0_0_3px_rgba(234,179,8,0.3)]",
+      iconColor: "text-yellow-400/60",
+      cardStyle: "hover:shadow-[0_0_15px_rgba(234,179,8,0.06)]",
+    },
     indigo: {
       bar: "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]",
       stroke: "stroke-indigo-500 drop-shadow-[0_0_4px_rgba(99,102,241,0.4)]",
@@ -61,8 +67,8 @@ export const MetricCard = ({
   const currentColors = colorConfig[color] || colorConfig.indigo;
 
   // Circle dimensions
-  const radius = 32;
-  const strokeWidth = 5;
+  const radius = 38;
+  const strokeWidth = 5.5;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = isNaN(numericValue)
     ? circumference
@@ -81,8 +87,9 @@ export const MetricCard = ({
 
   if (variant === "circle") {
     return (
-      <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-all duration-300 ${currentColors.cardStyle} group p-5`}>
+      <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group p-5`}>
         <div className="flex flex-row items-center justify-between gap-4 z-10 relative">
+          {/* Left info block */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
               {icon && (
@@ -91,31 +98,32 @@ export const MetricCard = ({
                 </div>
               )}
               <div className="flex flex-col">
-                <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground/80">{title}</CardTitle>
-                {subTitle && <span className="text-[11px] text-muted-foreground/50 font-medium -mt-0.5">{subTitle}</span>}
+                <CardTitle className="text-base font-bold tracking-wide text-foreground/90">{title}</CardTitle>
+                {subTitle && <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">{subTitle}</span>}
               </div>
             </div>
 
             {description && (
-              <p className="text-xs text-muted-foreground/60 font-medium tracking-wide">
+              <p className="text-sm font-medium tracking-wide text-muted-foreground/65">
                 {description}
               </p>
             )}
           </div>
 
-          <div className="relative flex items-center justify-center h-20 w-20 shrink-0">
+          {/* Right SVG Circle block */}
+          <div className="relative flex items-center justify-center h-24 w-24 shrink-0">
             <svg className="w-full h-full transform -rotate-90">
               <circle
-                cx="40"
-                cy="40"
+                cx="48"
+                cy="48"
                 r={radius}
                 className="stroke-white/10"
                 strokeWidth={strokeWidth}
                 fill="transparent"
               />
               <circle
-                cx="40"
-                cy="40"
+                cx="48"
+                cy="48"
                 r={radius}
                 className={`${currentColors.stroke} transition-all duration-500 ease-out`}
                 strokeWidth={strokeWidth}
@@ -126,8 +134,8 @@ export const MetricCard = ({
               />
             </svg>
             <div className="absolute flex flex-col items-center justify-center">
-              <span className="text-sm font-bold tracking-tight text-foreground">{value}</span>
-              {unit && <span className="text-[10px] font-semibold text-muted-foreground/50">{unit}</span>}
+              <span className="text-lg font-extrabold tracking-tight text-foreground">{value}</span>
+              {unit && <span className="text-xs font-bold text-muted-foreground/50">{unit}</span>}
             </div>
           </div>
         </div>
@@ -136,7 +144,7 @@ export const MetricCard = ({
   }
 
   return (
-    <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-all duration-300 ${currentColors.cardStyle} group`}>
+    <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group`}>
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2 z-10">
         {icon && (
           <div className={`${currentColors.iconColor} transition-all duration-300 shrink-0`}>
@@ -144,8 +152,8 @@ export const MetricCard = ({
           </div>
         )}
         <div className="flex flex-col">
-          <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground/80">{title}</CardTitle>
-          {subTitle && <span className="text-[11px] text-muted-foreground/50 font-medium -mt-0.5">{subTitle}</span>}
+          <CardTitle className="text-base font-bold tracking-wide text-foreground/90">{title}</CardTitle>
+          {subTitle && <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">{subTitle}</span>}
         </div>
       </CardHeader>
       <CardContent className="z-10">
@@ -164,7 +172,7 @@ export const MetricCard = ({
         )}
 
         {description && (
-          <p className="text-xs text-muted-foreground/60 mt-2 font-medium tracking-wide">
+          <p className="text-sm font-medium tracking-wide text-muted-foreground/65 mt-2">
             {description}
           </p>
         )}

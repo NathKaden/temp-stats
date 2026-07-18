@@ -44,15 +44,18 @@ def read_metrics(limit: int = 100, db: Session = Depends(get_db)):
 
 @router.get("/metrics/latest", response_model=schemas.SystemMetric)
 def read_latest_metric(db: Session = Depends(get_db)):
-    use_cases = MetricsUseCases(db)
-    metric = use_cases.get_latest()
-    if metric is None:
-        # Fallback to run a direct live check if DB is empty on first load
-        try:
-            return use_cases.collect_and_save()
-        except Exception:
-            raise HTTPException(status_code=404, detail="No metrics found")
-    return metric
+    try:
+        from app.infrastructure.system.collector import SystemMetricsCollector
+        metric = SystemMetricsCollector.collect()
+        metric.id = 0  # Dummy ID to satisfy Pydantic schema validation
+        return metric
+    except Exception as e:
+        # Fallback to DB if live collection fails
+        use_cases = MetricsUseCases(db)
+        metric = use_cases.get_latest()
+        if metric is not None:
+            return metric
+        raise HTTPException(status_code=500, detail=f"Failed to collect live metrics: {str(e)}")
 
 @router.post("/metrics/collect", response_model=schemas.SystemMetric)
 def force_collect(db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):

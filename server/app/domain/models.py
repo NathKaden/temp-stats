@@ -22,7 +22,8 @@ class SystemMetricDomain:
         uptime: str = "unknown",
         power_usage_w: float = 0.0,
         disk_services_json: Optional[str] = None,
-        cpu_name: Optional[str] = None
+        cpu_name: Optional[str] = None,
+        ram_services_json: Optional[str] = None
     ):
         self.id = id
         self.timestamp = timestamp or datetime.utcnow()
@@ -43,3 +44,4 @@ class SystemMetricDomain:
         self.power_usage_w = power_usage_w
         self.disk_services_json = disk_services_json
         self.cpu_name = cpu_name
+        self.ram_services_json = ram_services_json

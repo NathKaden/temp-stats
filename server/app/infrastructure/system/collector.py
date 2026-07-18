@@ -47,6 +47,81 @@ class SystemMetricsCollector:
         return platform.processor() or "Intel Core Processor"
 
     @staticmethod
+    def get_docker_ram_usage() -> str:
+        import subprocess
+        import json
+
+        services = {
+            "nextcloud": ["nextcloud", "nextcloud-app", "nextcloud_app_1"],
+            "outline": ["outline", "outline-app", "outline_app_1"],
+            "stats": ["stats", "nuc-monitor-server", "nuc-monitor-client", "stats-server", "stats-client"]
+        }
+
+        ram_usage = {
+            "Nextcloud": 0.0,
+            "Outline": 0.0,
+            "Stats": 0.0
+        }
+
+        # 1. Try Docker stats
+        try:
+            result = subprocess.run(
+                ["docker", "stats", "--no-stream", "--format", "{{.Name}}:{{.MemUsage}}"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                timeout=3
+            )
+
+            if result.returncode == 0:
+                for line in result.stdout.strip().split("\n"):
+                    if not line or ":" not in line:
+                        continue
+                    parts = line.split(":", 1)
+                    if len(parts) < 2:
+                        continue
+                    name, mem_part = parts[0].lower(), parts[1]
+
+                    # Parse memory usage (e.g. "150.5MiB / 7.82GiB" or "1.2GiB / 7.8GiB")
+                    mem_str = mem_part.split("/")[0].strip()
+                    mem_mb = 0.0
+                    try:
+                        num_str = "".join([c for c in mem_str if c.isdigit() or c == "."])
+                        value = float(num_str) if num_str else 0.0
+
+                        if "gib" in mem_str.lower():
+                            mem_mb = value * 1024.0
+                        elif "mib" in mem_str.lower():
+                            mem_mb = value
+                        elif "kib" in mem_str.lower():
+                            mem_mb = value / 1024.0
+                        elif "b" in mem_str.lower():
+                            mem_mb = value / (1024.0 * 1024.0)
+                        else:
+                            mem_mb = value
+                    except ValueError:
+                        pass
+
+                    for service_key, aliases in services.items():
+                        if any(alias in name for alias in aliases):
+                            s_name = service_key.capitalize()
+                            ram_usage[s_name] = round(ram_usage[s_name] + mem_mb, 1)
+                            break
+        except Exception:
+            pass
+
+        # 2. Add local stats process RAM usage (rss) as fallback/addition
+        try:
+            import os
+            process = psutil.Process(os.getpid())
+            local_stats_mb = process.memory_info().rss / (1024.0 * 1024.0)
+            ram_usage["Stats"] = round(ram_usage["Stats"] + local_stats_mb, 1)
+        except Exception:
+            pass
+
+        return json.dumps(ram_usage)
+
+    @staticmethod
     def get_hostname() -> str:
         try:
             return socket.gethostname()
@@ -99,11 +174,11 @@ class SystemMetricsCollector:
         try:
             boot_time_timestamp = psutil.boot_time()
             uptime_seconds = time.time() - boot_time_timestamp
-            
+
             days, rem = divmod(int(uptime_seconds), 86400)
             hours, rem = divmod(rem, 3600)
             minutes, seconds = divmod(rem, 60)
-            
+
             parts = []
             if days > 0:
                 parts.append(f"{days} jour{'s' if days > 1 else ''}")
@@ -111,7 +186,7 @@ class SystemMetricsCollector:
                 parts.append(f"{hours} heure{'s' if hours > 1 else ''}")
             if minutes > 0:
                 parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
-                
+
             if not parts:
                 return "actif depuis moins d'une minute"
             return "actif depuis " + ", ".join(parts)
@@ -119,7 +194,19 @@ class SystemMetricsCollector:
             return "actif depuis durée inconnue"
 
     @classmethod
+    def get_rapl_energy(cls):
+        try:
+            with open('/sys/class/powercap/intel-rapl/intel-rapl:0/energy_uj', 'r') as f:
+                return int(f.read().strip())
+        except Exception:
+            return None
+
+    @classmethod
     def collect(cls) -> SystemMetricDomain:
+        # Get start RAPL energy and timestamp
+        start_energy = cls.get_rapl_energy()
+        start_time = time.time()
+
         # Get host device name
         device_name = cls.get_hostname()
 
@@ -150,11 +237,11 @@ class SystemMetricsCollector:
         nextcloud_size = cls.get_dir_size('/opt/nextcloud')
         outline_size = cls.get_dir_size('/opt/outline')
         stats_size = cls.get_dir_size(stats_path)
-            
+
         autres_size = round(disk_usage_gb - (nextcloud_size + outline_size + stats_size), 1)
         if autres_size < 0:
             autres_size = 0.0
-            
+
         import json
         services_breakdown = {
             "Nextcloud": nextcloud_size,
@@ -206,11 +293,11 @@ class SystemMetricsCollector:
             net_start = psutil.net_io_counters()
             time.sleep(1.0)
             net_end = psutil.net_io_counters()
-            
+
             # Calculate speed in MB/s (1024*1024 bytes)
             net_rx_mb = round((net_end.bytes_recv - net_start.bytes_recv) / (1024 * 1024), 2)
             net_tx_mb = round((net_end.bytes_sent - net_start.bytes_sent) / (1024 * 1024), 2)
-            
+
             # Prevent negative speeds (e.g. if counter resets)
             if net_rx_mb < 0: net_rx_mb = 0.0
             if net_tx_mb < 0: net_tx_mb = 0.0
@@ -221,17 +308,27 @@ class SystemMetricsCollector:
         # 7. Uptime
         uptime = cls.get_uptime()
 
+        # Get end RAPL energy and calculate actual consumption
+        end_energy = cls.get_rapl_energy()
+        end_time = time.time()
+
+        rapl_power = None
+        if start_energy is not None and end_energy is not None:
+            elapsed = end_time - start_time
+            if elapsed > 0:
+                rapl_power = (end_energy - start_energy) / (1_000_000 * elapsed)
+
         # 8. Electricity consumption (W)
-        # Power dynamic formula: base_power + (max_power - base_power) * (cpu_usage / 100)
-        power_usage_w = settings.POWER_BASE_W + (settings.POWER_MAX_W - settings.POWER_BASE_W) * (cpu_usage / 100.0)
-        
-        # Add a tiny organic micro-variation (e.g. 0.05W to 0.15W) to show the graph is active
-        # so it doesn't look completely flat if CPU usage is steady.
-        import random
-        noise = random.uniform(-0.1, 0.1)
-        power_usage_w = max(settings.POWER_BASE_W, round(power_usage_w + noise, 2))
+        if rapl_power is not None:
+            # CPU RAPL power + NUC base idle power (rest of motherboard/components)
+            power_usage_w = round(settings.POWER_BASE_W + rapl_power, 2)
+        else:
+            # Fallback dynamic formula: base_power + (max_power - base_power) * (cpu_usage / 100)
+            power_usage_w = settings.POWER_BASE_W + (settings.POWER_MAX_W - settings.POWER_BASE_W) * (cpu_usage / 100.0)
+            power_usage_w = max(settings.POWER_BASE_W, round(power_usage_w, 2))
 
         cpu_name = cls.get_cpu_name()
+        ram_services_json = cls.get_docker_ram_usage()
 
         return SystemMetricDomain(
             device_name=device_name,
@@ -250,5 +347,6 @@ class SystemMetricsCollector:
             uptime=uptime,
             power_usage_w=power_usage_w,
             disk_services_json=disk_services_json,
-            cpu_name=cpu_name
+            cpu_name=cpu_name,
+            ram_services_json=ram_services_json
         )

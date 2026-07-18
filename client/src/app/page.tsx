@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { DashboardTemplate } from "@/components/templates/DashboardTemplate";
 import { MetricsOverview } from "@/components/organisms/MetricsOverview";
+import { ServicesSection } from "@/components/organisms/ServicesSection";
 import { HistorySection } from "@/components/organisms/HistorySection";
 import { DataTable } from "@/components/molecules/DataTable";
 import { metricsService } from "@/services/api";
@@ -16,7 +17,7 @@ export default function Home() {
   const [history, setHistory] = useState<SystemMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "history" | "logs">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "logs">("dashboard");
 
   const fetchData = async () => {
     try {
@@ -43,15 +44,23 @@ export default function Home() {
 
   useEffect(() => {
     if (isMounted) {
-      const interval = setInterval(() => fetchData(), 10000); // Refresh every 10s
+      const interval = setInterval(() => fetchData(), 5000); // Refresh every 5s
       return () => clearInterval(interval);
     }
   }, [isMounted]);
 
   const Title = (
-    <h1 className="text-xl font-bold tracking-tight text-violet-300">
-      Dashboard
-    </h1>
+    <div className="flex items-center gap-2.5">
+      <img
+        src="https://beskarfox.com/Assets/img/Beskarfox_TW.png"
+        alt="Beskarfox Logo"
+        className="h-8 w-8 object-contain opacity-[0.65] select-none"
+        style={{ filter: "sepia(1) saturate(5) hue-rotate(230deg)" }}
+      />
+      <h1 className="text-xl font-light tracking-tight text-violet-300 font-bold">
+        Dashboard
+      </h1>
+    </div>
   );
 
   if (!isMounted) {
@@ -79,6 +88,7 @@ export default function Home() {
       title={Title}
       refreshButton={null}
       overview={<MetricsOverview latest={latest} />}
+      services={<ServicesSection latest={latest} />}
       charts={<HistorySection history={history} />}
       table={<DataTable data={history} />}
       activeTab={activeTab}

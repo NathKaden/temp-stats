@@ -19,14 +19,14 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
           title="Température CPU"
           data={reversedHistory}
           dataKey="cpu_temp"
-          color="#ef4444"
+          color="#3b82f6"
           unit="°C"
         />
         <MetricChart
           title="Utilisation CPU"
           data={reversedHistory}
           dataKey="cpu_usage"
-          color="#3b82f6"
+          color="#60a5fa"
           unit="%"
         />
       </div>
@@ -37,14 +37,14 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
           title="Utilisation RAM"
           data={reversedHistory}
           dataKey="ram_usage_percent"
-          color="#10b981"
+          color="#ff2c4c"
           unit="%"
         />
         <MetricChart
           title="Usage Réseau (Entrant)"
           data={reversedHistory}
           dataKey="net_rx_mb"
-          color="#f59e0b"
+          color="#8b5cf6"
           unit=" Mo/s"
         />
       </div>
@@ -55,14 +55,14 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
           title="Consommation Électrique"
           data={reversedHistory}
           dataKey="power_usage_w"
-          color="#a78bfa"
+          color="#eab308"
           unit=" W"
         />
         <MetricChart
           title="Coût Électrique Estimé"
           data={reversedHistory}
           dataKey="estimated_cost_monthly"
-          color="#22c55e"
+          color="#10b981"
           unit=" €/mois"
         />
       </div>
