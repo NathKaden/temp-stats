@@ -158,3 +158,10 @@
 .glass-btn-blended::after {
   display: none !important;
 }
+
+.recharts-tooltip-wrapper {
+  backdrop-filter: blur(16px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  border-radius: 8px;
+  pointer-events: none;
+}
