@@ -185,30 +185,9 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       {/* Disks SSD Section */}
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Stockage</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
 
-          {/* SSD SATA Card (sauvegardes) - Left Col */}
-          <MetricCard
-            title={
-              <div className="flex items-center gap-2">
-                <span>SSD SATA</span>
-                {latest && (
-                  <span className="text-sm font-semibold text-muted-foreground/55 select-none">
-                    {latest.disk_temp}°C
-                  </span>
-                )}
-              </div>
-            }
-            subTitle="Backups"
-            value={latest.disk_sata_total_gb ? ((latest.disk_sata_usage_gb / latest.disk_sata_total_gb) * 100).toFixed(1) : "0.0"}
-            unit="%"
-            icon={<HardDrive className="h-6 w-6" />}
-            description={`Espace : ${latest.disk_sata_usage_gb || 0} / ${latest.disk_sata_total_gb || 0} Go`}
-            color="orange"
-            variant="circle"
-          />
-
-          {/* NVMe SSD Service breakdown Donut Card - Right Col */}
+          {/* NVMe SSD Service breakdown Donut Card */}
           <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(249,74,41,0.12)] group p-5">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 z-10 relative">
               {/* Left Details & Legend */}
@@ -279,6 +258,29 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               </div>
             </div>
           </Card>
+
+          {/* SSD SATA Card (sauvegardes) */}
+          <div className="grid gap-4 grid-cols-1">
+            <MetricCard
+              title={
+                <div className="flex items-center gap-2">
+                  <span>SSD SATA</span>
+                  {latest && (
+                    <span className="text-sm font-semibold text-muted-foreground/55 select-none">
+                      {latest.disk_temp}°C
+                    </span>
+                  )}
+                </div>
+              }
+              subTitle="Backups"
+              value={latest.disk_sata_total_gb ? ((latest.disk_sata_usage_gb / latest.disk_sata_total_gb) * 100).toFixed(1) : "0.0"}
+              unit="%"
+              icon={<HardDrive className="h-6 w-6" />}
+              description={`Espace : ${latest.disk_sata_usage_gb || 0} / ${latest.disk_sata_total_gb || 0} Go`}
+              color="orange"
+              variant="circle"
+            />
+          </div>
 
         </div>
       </div>
