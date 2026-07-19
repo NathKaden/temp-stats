@@ -200,10 +200,10 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               </div>
             }
             subTitle="Backups"
-            value={((latest.disk_sata_usage_gb / latest.disk_sata_total_gb) * 100).toFixed(1)}
+            value={latest.disk_sata_total_gb ? ((latest.disk_sata_usage_gb / latest.disk_sata_total_gb) * 100).toFixed(1) : "0.0"}
             unit="%"
             icon={<HardDrive className="h-6 w-6" />}
-            description={`Espace : ${latest.disk_sata_usage_gb} / ${latest.disk_sata_total_gb} Go`}
+            description={`Espace : ${latest.disk_sata_usage_gb || 0} / ${latest.disk_sata_total_gb || 0} Go`}
             color="orange"
             variant="circle"
           />
