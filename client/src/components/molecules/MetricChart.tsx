@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface MetricChartProps {
   title: string;
@@ -25,12 +26,12 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
     if (active && payload && payload.length) {
       let formattedLabel = label;
       try {
-        formattedLabel = format(new Date(label), 'PPP HH:mm:ss');
+        formattedLabel = format(new Date(label), 'PPP HH:mm:ss', { locale: fr });
       } catch (e) {}
 
       return (
-        <div className="rounded-lg glass-card-blended bg-zinc-950/40 backdrop-blur-xl border border-white/10 p-3 shadow-2xl text-xs font-sans">
-          <p className="font-medium text-muted-foreground/80 mb-1.5">{formattedLabel}</p>
+        <div className="group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl py-(--card-spacing) px-3.5 text-xs text-card-foreground [--card-spacing:--spacing(2.5)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(2.5)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl col-span-1 glass-card-blended ring-0 bg-card/40 backdrop-blur-xl shadow-xl">
+          <p className="font-medium text-muted-foreground/80">{formattedLabel}</p>
           <p className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full inline-block animate-pulse" style={{ backgroundColor: color }} />
             {payload[0].value}
@@ -44,7 +45,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
 
   if (!isMounted) {
     return (
-      <Card className="col-span-1 glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-all duration-300 shadow-xl">
+      <Card className="col-span-1 rounded-xl border border-white/10 bg-card/40 transition-all duration-300 shadow-xl">
         <CardHeader className="pb-4">
           <CardTitle className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">{title}</CardTitle>
         </CardHeader>
@@ -58,7 +59,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
   }
 
   return (
-    <Card className="col-span-1 glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-all duration-300 shadow-xl">
+    <Card className="col-span-1 rounded-xl border border-white/10 bg-card/40 transition-all duration-300 shadow-xl">
       <CardHeader className="pb-4">
         <CardTitle className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">{title}</CardTitle>
       </CardHeader>
@@ -94,7 +95,11 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                 stroke="transparent"
                 unit={unit}
               />
-              <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} />
+              <Tooltip 
+                content={<CustomTooltip />} 
+                cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} 
+                wrapperStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
+              />
               <Area 
                 type="monotone" 
                 dataKey={dataKey} 
