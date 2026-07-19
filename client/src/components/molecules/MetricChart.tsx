@@ -29,7 +29,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
       } catch (e) {}
 
       return (
-        <div className="rounded-lg glass-card-blended bg-zinc-950/90 backdrop-blur-md p-3 shadow-2xl text-xs font-sans">
+        <div className="rounded-lg glass-card-blended bg-zinc-950/40 backdrop-blur-xl border border-white/10 p-3 shadow-2xl text-xs font-sans">
           <p className="font-medium text-muted-foreground/80 mb-1.5">{formattedLabel}</p>
           <p className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
             <span className="h-2 w-2 rounded-full inline-block animate-pulse" style={{ backgroundColor: color }} />

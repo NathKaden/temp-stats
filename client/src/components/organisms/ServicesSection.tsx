@@ -10,7 +10,7 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   if (!latest) return null;
 
   // 1. Parse RAM services usage
-  let ramUsage: Record<string, number> = { Nextcloud: 0, Outline: 0, Stats: 0 };
+  let ramUsage: Record<string, number> = { Beskarfox: 0, Nextcloud: 0, Outline: 0, Stats: 0 };
   try {
     if (latest.ram_services_json) {
       ramUsage = JSON.parse(latest.ram_services_json);
@@ -20,7 +20,7 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   }
 
   // 2. Parse Disk services usage
-  let diskUsage: Record<string, number> = { Nextcloud: 0, Outline: 0, Stats: 0 };
+  let diskUsage: Record<string, number> = { Beskarfox: 0, Nextcloud: 0, Outline: 0, Stats: 0 };
   try {
     if (latest.disk_services_json) {
       diskUsage = JSON.parse(latest.disk_services_json);
@@ -41,7 +41,7 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
       color: "emerald",
       glowColor: "rgba(168, 85, 247, 0.12)",
       iconBg: "bg-violet-500/10 text-violet-400 border border-violet-500/20",
-      hasMetrics: false
+      hasMetrics: true
     },
     {
       name: "Nextcloud",

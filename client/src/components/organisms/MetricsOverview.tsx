@@ -23,6 +23,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
     if (latest.disk_services_json) {
       const parsed = JSON.parse(latest.disk_services_json);
       servicesData = [
+        { name: "Beskarfox", value: parsed.Beskarfox || 0, color: "#10b981" }, // Emerald
         { name: "Nextcloud", value: parsed.Nextcloud || 0, color: "#a855f7" }, // Purple
         { name: "Outline", value: parsed.Outline || 0, color: "#3b82f6" },     // Blue
         { name: "Stats", value: parsed.Stats || 0, color: "#ec4899" },         // Pink
@@ -60,14 +61,16 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       const parsed = JSON.parse(latest.ram_services_json);
 
       // Convert MB values to GB for chart data
+      const beskarfoxGb = (parsed.Beskarfox || 0) / 1024.0;
       const nextcloudGb = (parsed.Nextcloud || 0) / 1024.0;
       const outlineGb = (parsed.Outline || 0) / 1024.0;
       const statsGb = (parsed.Stats || 0) / 1024.0;
 
-      const knownServicesGb = nextcloudGb + outlineGb + statsGb;
+      const knownServicesGb = beskarfoxGb + nextcloudGb + outlineGb + statsGb;
       const autresGb = Math.max(0, ramUsed - knownServicesGb);
 
       ramServicesData = [
+        { name: "Beskarfox", value: beskarfoxGb, color: "#10b981" }, // Emerald
         { name: "Nextcloud", value: nextcloudGb, color: "#a855f7" }, // Purple
         { name: "Outline", value: outlineGb, color: "#3b82f6" },     // Blue
         { name: "Stats", value: statsGb, color: "#ec4899" },         // Pink
@@ -182,9 +185,30 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       {/* Disks SSD Section */}
       <div className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Stockage</h2>
-        <div className="flex flex-col gap-4">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 
-          {/* NVMe SSD Service breakdown Donut Card */}
+          {/* SSD SATA Card (sauvegardes) - Left Col */}
+          <MetricCard
+            title={
+              <div className="flex items-center gap-2">
+                <span>SSD SATA</span>
+                {latest && (
+                  <span className="text-sm font-semibold text-muted-foreground/55 select-none">
+                    {latest.disk_temp}°C
+                  </span>
+                )}
+              </div>
+            }
+            subTitle="Backups"
+            value={((latest.disk_sata_usage_gb / latest.disk_sata_total_gb) * 100).toFixed(1)}
+            unit="%"
+            icon={<HardDrive className="h-6 w-6" />}
+            description={`Espace : ${latest.disk_sata_usage_gb} / ${latest.disk_sata_total_gb} Go`}
+            color="orange"
+            variant="circle"
+          />
+
+          {/* NVMe SSD Service breakdown Donut Card - Right Col */}
           <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(249,74,41,0.12)] group p-5">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 z-10 relative">
               {/* Left Details & Legend */}
@@ -206,28 +230,34 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                   </div>
                 </div>
 
-                {/* Legend Grid */}
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                      {servicesData.map((item, idx) => (
-                          <div key={idx} className="inline-flex items-center gap-1.5 text-xs whitespace-nowrap">
-                              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                              <span className="font-semibold text-foreground/90">{item.name} :</span>
-                              <span className="text-muted-foreground">{item.value.toFixed(1)} Go</span>
-                          </div>
-                      ))}
-                  </div>
+                {/* Legend Grid (stuck together in 2 columns) */}
+                <div className="grid grid-cols-[max-content_max-content] gap-x-4 gap-y-1 mt-1">
+                  {servicesData.map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="font-semibold text-foreground/90">{item.name} :</span>
+                      <span className="text-muted-foreground">
+                        {item.name === "Disponible"
+                            ? `${item.value.toFixed(1)} Go`
+                            : item.value >= 1.0
+                                ? `${item.value.toFixed(1)} Go`
+                                : `${(item.value * 1024).toFixed(0)} Mo`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Right Donut Chart */}
-              <div className="relative h-32 w-32 shrink-0 flex items-center justify-center">
+              <div className="relative h-28 w-28 shrink-0 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={servicesData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={42}
-                      outerRadius={50}
+                      innerRadius={36}
+                      outerRadius={44}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -241,7 +271,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center justify-center">
                   <div className="flex items-baseline text-foreground">
-                    <span className="text-2xl font-extrabold tracking-tight">{nvmePercent}</span>
+                    <span className="text-xl font-extrabold tracking-tight">{nvmePercent}</span>
                     <span className="text-sm font-bold text-muted-foreground/60 ml-0.5">%</span>
                   </div>
                   <span className="text-xs font-bold text-muted-foreground/50">Utilisé</span>
@@ -249,28 +279,6 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               </div>
             </div>
           </Card>
-
-          <div className="grid gap-4 grid-cols-1">
-            <MetricCard
-              title={
-                <div className="flex items-center gap-2">
-                  <span>SSD SATA</span>
-                  {latest && (
-                    <span className="text-sm font-semibold text-muted-foreground/55 select-none">
-                      {latest.disk_temp}°C
-                    </span>
-                  )}
-                </div>
-              }
-              subTitle="Backups"
-              value={((latest.disk_sata_usage_gb / latest.disk_sata_total_gb) * 100).toFixed(1)}
-              unit="%"
-              icon={<HardDrive className="h-6 w-6" />}
-              description={`Espace : ${latest.disk_sata_usage_gb} / ${latest.disk_sata_total_gb} Go`}
-              color="orange"
-              variant="circle"
-            />
-          </div>
 
         </div>
       </div>

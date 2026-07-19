@@ -52,12 +52,14 @@ class SystemMetricsCollector:
         import json
 
         services = {
+            "beskarfox": ["beskarfox", "beskarfox-web", "beskarfox-app", "beskarfox_app", "beskarfox-client"],
             "nextcloud": ["nextcloud", "nextcloud-app", "nextcloud_app_1"],
             "outline": ["outline", "outline-app", "outline_app_1"],
             "stats": ["stats", "nuc-monitor-server", "nuc-monitor-client", "stats-server", "stats-client"]
         }
 
         ram_usage = {
+            "Beskarfox": 0.0,
             "Nextcloud": 0.0,
             "Outline": 0.0,
             "Stats": 0.0
@@ -262,21 +264,24 @@ class SystemMetricsCollector:
         if platform.system() == 'Windows':
             stats_path = os.getcwd()
 
+        beskarfox_size = cls.get_dir_size('/opt/beskarfox')
         nextcloud_size = cls.get_dir_size('/opt/nextcloud')
         outline_size = cls.get_dir_size('/opt/outline')
         stats_size = cls.get_dir_size(stats_path)
 
-        autres_size = round(disk_usage_gb - (nextcloud_size + outline_size + stats_size), 1)
+        autres_size = round(disk_usage_gb - (beskarfox_size + nextcloud_size + outline_size + stats_size), 1)
         if autres_size < 0:
             autres_size = 0.0
 
         import json
         services_breakdown = {
+            "Beskarfox": beskarfox_size,
             "Nextcloud": nextcloud_size,
             "Outline": outline_size,
             "Stats": stats_size,
-            "Autres": autres_size
+            "Autres":Platform_autre_adjust if 'Platform_autre_adjust' in locals() else autres_size
         }
+        services_breakdown["Autres"] = autres_size
         disk_services_json = json.dumps(services_breakdown)
 
         disk_sata_total_gb = 480.0
