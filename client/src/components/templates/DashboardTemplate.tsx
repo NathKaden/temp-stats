@@ -155,7 +155,7 @@ export const DashboardTemplate = ({
 
             {activeTab === "history" && (
               <section className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1 mb-4">Historique</h2>
+                <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1 mb-6">Historique</h2>
                 {charts}
               </section>
             )}

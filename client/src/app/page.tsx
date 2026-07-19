@@ -24,7 +24,7 @@ export default function Home() {
       setLoading(true);
       const [latestData, historyData] = await Promise.all([
         metricsService.getLatest(),
-        metricsService.getHistory(50)
+        metricsService.getHistory(1000)
       ]);
       setLatest(latestData);
       setHistory(historyData);
