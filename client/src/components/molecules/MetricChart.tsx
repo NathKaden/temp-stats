@@ -340,7 +340,13 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
               <div className="w-[50px] h-full shrink-0 bg-transparent pr-1.5 pb-2 select-none flex flex-col justify-between">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 25 }}>
-                    <XAxis hide={true} dataKey="timestamp" />
+                    <XAxis 
+                      dataKey="timestamp" 
+                      tick={false} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      stroke="transparent" 
+                    />
                     <YAxis 
                       dataKey={dataKey}
                       tick={{ fontSize: 10, fill: "#8a8a93" }} 
