@@ -207,12 +207,46 @@ class SystemMetricsCollector:
     def get_host_net_bytes(cls):
         total_rx = 0
         total_tx = 0
+        
+        # 1. Try reading from host's proc fs if mounted at /host/proc
+        proc_net_dev = '/host/proc/net/dev'
+        if not os.path.exists(proc_net_dev):
+            proc_net_dev = '/proc/net/dev'
+            
+        try:
+            if os.path.exists(proc_net_dev):
+                with open(proc_net_dev, 'r') as f:
+                    lines = f.readlines()
+                
+                has_interfaces = False
+                for line in lines[2:]:  # skip headers
+                    parts = line.split()
+                    if len(parts) < 10:
+                        continue
+                    iface = parts[0].strip(':')
+                    
+                    # Exclude loopback, virtual interfaces, docker bridges, veths
+                    if iface == 'lo' or iface.startswith('docker') or iface.startswith('br-') or iface.startswith('veth') or iface.startswith('vnet') or iface.startswith('wio'):
+                        continue
+                    
+                    rx_bytes = int(parts[1])
+                    tx_bytes = int(parts[9])
+                    
+                    total_rx += rx_bytes
+                    total_tx += tx_bytes
+                    has_interfaces = True
+                
+                if has_interfaces:
+                    return total_rx, total_tx
+        except Exception:
+            pass
+            
+        # 2. Fallback to /sys/class/net if proc dev fails
         try:
             net_dir = '/sys/class/net'
             if os.path.exists(net_dir):
                 has_interfaces = False
                 for iface in os.listdir(net_dir):
-                    # Exclude loopback, docker bridges, and virtual ethernet pairs
                     if iface == 'lo' or iface.startswith('docker') or iface.startswith('br-') or iface.startswith('veth'):
                         continue
                     
@@ -229,6 +263,7 @@ class SystemMetricsCollector:
                     return total_rx, total_tx
         except Exception:
             pass
+            
         return None
 
     @classmethod
