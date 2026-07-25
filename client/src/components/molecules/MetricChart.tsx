@@ -18,12 +18,12 @@ interface MetricChartProps {
 export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = "" }: MetricChartProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isMouseOver, setIsMouseOver] = useState(false);
-  
+
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
-  
+
   const modalChartRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -204,7 +204,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
           </button>
         </CardHeader>
         <CardContent>
-          <div 
+          <div
             className="h-[200px] w-full cursor-pointer"
             onClick={() => setIsModalOpen(true)}
             onMouseEnter={() => setIsMouseOver(true)}
@@ -219,9 +219,9 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.04)" />
-                <XAxis 
-                  dataKey="timestamp" 
-                  tick={{ fontSize: 9, fill: "#a1a1aa" }} 
+                <XAxis
+                  dataKey="timestamp"
+                  tick={{ fontSize: 9, fill: "#a1a1aa" }}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(str) => {
@@ -233,25 +233,25 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                   }}
                   stroke="transparent"
                 />
-                <YAxis 
-                  tick={{ fontSize: 9, fill: "#a1a1aa" }} 
+                <YAxis
+                  tick={{ fontSize: 9, fill: "#a1a1aa" }}
                   tickLine={false}
                   axisLine={false}
                   stroke="transparent"
                   unit={unit}
                 />
-                <Tooltip 
-                  content={<CustomTooltip />} 
-                  cursor={isMouseOver ? { stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 } : false} 
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={isMouseOver ? { stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 } : false}
                   wrapperStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey={dataKey} 
-                  stroke={color} 
+                <Area
+                  type="monotone"
+                  dataKey={dataKey}
+                  stroke={color}
                   strokeWidth={2}
-                  fillOpacity={1} 
-                  fill={`url(#color${dataKey})`} 
+                  fillOpacity={1}
+                  fill={`url(#color${dataKey})`}
                   activeDot={isMouseOver}
                 />
               </AreaChart>
@@ -264,15 +264,15 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10">
           {/* Backdrop Overlay */}
-          <div 
+          <div
             onClick={closeModal}
             className={`absolute inset-0 bg-black/60 backdrop-blur-md transition-all duration-300 ${
               isClosing ? "animate-out fade-out" : "animate-in fade-in"
             }`}
           />
-          
+
           {/* Modal Content Card */}
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             className={`rounded-2xl w-full max-w-5xl p-6 md:p-8 shadow-2xl relative flex flex-col gap-6 overflow-hidden transition-all duration-300 z-10 ${
               isClosing ? "animate-out fade-out zoom-out-95" : "animate-in fade-in zoom-in-95"
@@ -295,11 +295,11 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
             {/* Modal Header & Controls */}
             <div className="flex justify-between items-center pr-12 flex-wrap gap-4 border-b border-white/5 pb-4 z-10">
               <div>
-                <h3 className="font-poppins text-lg font-bold text-zinc-300 uppercase tracking-wide">
+                <h3 className="font-poppins text-xl font-bold text-zinc-300 tracking-wide">
                   {title}
                 </h3>
                 <p className="text-xs text-muted-foreground/60 mt-1">
-                  Glissez le graphique pour vous déplacer • Utilisez la molette ou les boutons pour zoomer
+                  Glissez pour déplacer, la molette ou les boutons pour zoomer
                 </p>
               </div>
 
@@ -335,31 +335,31 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
 
             {/* Large Scrollable Chart Viewport Wrapper (Seamless/No Nested Border or Box BG) */}
             <div className="flex flex-row w-full h-[400px] overflow-hidden z-10">
-              
+
               {/* Sticky Y-Axis Column (Seamlessly transparent, no border-r) */}
               <div className="w-[50px] h-full shrink-0 bg-transparent pr-1.5 pb-2 select-none flex flex-col justify-between">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 25 }}>
-                    <XAxis 
-                      dataKey="timestamp" 
-                      tick={false} 
-                      tickLine={false} 
-                      axisLine={false} 
-                      stroke="transparent" 
+                    <XAxis
+                      dataKey="timestamp"
+                      tick={false}
+                      tickLine={false}
+                      axisLine={false}
+                      stroke="transparent"
                     />
-                    <YAxis 
+                    <YAxis
                       dataKey={dataKey}
-                      tick={{ fontSize: 10, fill: "#8a8a93" }} 
+                      tick={{ fontSize: 10, fill: "#8a8a93" }}
                       tickLine={false}
                       axisLine={false}
                       stroke="transparent"
                       unit={unit}
                     />
-                    <Area 
-                      type="monotone" 
-                      dataKey={dataKey} 
-                      stroke="transparent" 
-                      fill="transparent" 
+                    <Area
+                      type="monotone"
+                      dataKey={dataKey}
+                      stroke="transparent"
+                      fill="transparent"
                       activeDot={false}
                     />
                   </AreaChart>
@@ -367,7 +367,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
               </div>
 
               {/* Large Scrollable Chart Container */}
-              <div 
+              <div
                 ref={containerRef}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
@@ -377,7 +377,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                   isDragging ? "cursor-grabbing select-none" : "cursor-grab"
                 }`}
               >
-                <div 
+                <div
                   ref={modalChartRef}
                   className="h-full transition-all duration-300"
                   style={{ width: `${zoomScale * 100}%`, minWidth: "100%" }}
@@ -391,9 +391,9 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.04)" />
-                      <XAxis 
-                        dataKey="timestamp" 
-                        tick={{ fontSize: 10, fill: "#a1a1aa" }} 
+                      <XAxis
+                        dataKey="timestamp"
+                        tick={{ fontSize: 10, fill: "#a1a1aa" }}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(str) => {
@@ -406,19 +406,19 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                         stroke="transparent"
                       />
                       <YAxis hide={true} dataKey={dataKey} />
-                      <Tooltip 
-                        content={<CustomTooltipModal />} 
-                        cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} 
+                      <Tooltip
+                        content={<CustomTooltipModal />}
+                        cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }}
                         wrapperStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
                         allowEscapeViewBox={{ x: true, y: true }}
                       />
-                      <Area 
-                        type="monotone" 
-                        dataKey={dataKey} 
-                        stroke={color} 
+                      <Area
+                        type="monotone"
+                        dataKey={dataKey}
+                        stroke={color}
                         strokeWidth={2.5}
-                        fillOpacity={1} 
-                        fill={`url(#modalColor${dataKey})`} 
+                        fillOpacity={1}
+                        fill={`url(#modalColor${dataKey})`}
                         activeDot={true}
                       />
                     </AreaChart>
