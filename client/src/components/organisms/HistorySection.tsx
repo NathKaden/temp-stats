@@ -50,7 +50,7 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
   return (
     <div className="flex flex-col gap-16">
       {/* Section Utilisation */}
-      <div className="flex flex-col gap-4 pt-10">
+      <div className="flex flex-col gap-4 pt-20">
         <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Utilisation</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <MetricChart
