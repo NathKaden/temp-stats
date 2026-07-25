@@ -76,7 +76,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.04)" />
               <XAxis 
                 dataKey="timestamp" 
-                tick={{ fontSize: 9, fill: "#71717a" }} 
+                tick={{ fontSize: 9, fill: "#a1a1aa" }} 
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(str) => {
@@ -89,7 +89,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                 stroke="transparent"
               />
               <YAxis 
-                tick={{ fontSize: 9, fill: "#71717a" }} 
+                tick={{ fontSize: 9, fill: "#a1a1aa" }} 
                 tickLine={false}
                 axisLine={false}
                 stroke="transparent"

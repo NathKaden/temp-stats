@@ -8,7 +8,7 @@ import { HistorySection } from "@/components/organisms/HistorySection";
 import { DataTable } from "@/components/molecules/DataTable";
 import { metricsService } from "@/services/api";
 import { SystemMetric } from "@/types";
-import { RefreshCw, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
@@ -19,35 +19,65 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "logs">("dashboard");
 
-  const fetchData = async () => {
+  const fetchLatestData = async () => {
     try {
-      setLoading(true);
-      const [latestData, historyData] = await Promise.all([
-        metricsService.getLatest(),
-        metricsService.getHistory(1000)
-      ]);
+      const latestData = await metricsService.getLatest();
       setLatest(latestData);
-      setHistory(historyData);
       setError(null);
     } catch (err) {
-      console.error("Failed to fetch metrics:", err);
-      setError("Échec de la récupération des données depuis le serveur.");
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch latest metrics:", err);
+      if (!latest) {
+        setError("Échec de la récupération des données depuis le serveur.");
+      }
     }
   };
 
+  const fetchHistoryData = async () => {
+    try {
+      const historyData = await metricsService.getHistory(300);
+      setHistory(historyData);
+    } catch (err) {
+      console.error("Failed to fetch history metrics:", err);
+    }
+  };
+
+  // Initial load: fetch latest data only (loads instantly)
   useEffect(() => {
-    setIsMounted(true);
-    fetchData();
+    const init = async () => {
+      setIsMounted(true);
+      setLoading(true);
+      await fetchLatestData();
+      setLoading(false);
+    };
+    init();
   }, []);
 
+  // Fetch history when entering a tab that needs it
+  useEffect(() => {
+    if (isMounted && (activeTab === "history" || activeTab === "logs")) {
+      fetchHistoryData();
+    }
+  }, [activeTab, isMounted]);
+
+  // Poll for data: poll latest every 5s, poll history every 30s if on history/logs tab
   useEffect(() => {
     if (isMounted) {
-      const interval = setInterval(() => fetchData(), 5000); // Refresh every 5s
-      return () => clearInterval(interval);
+      const intervalLatest = setInterval(() => {
+        fetchLatestData();
+      }, 5000);
+
+      const intervalHistory = setInterval(() => {
+        if (activeTab === "history" || activeTab === "logs") {
+          fetchHistoryData();
+        }
+      }, 30000);
+
+      return () => {
+        clearInterval(intervalLatest);
+        clearInterval(intervalHistory);
+      };
     }
-  }, [isMounted]);
+  }, [isMounted, activeTab]);
 
   const Title = (
     <div className="flex items-center gap-2.5">
@@ -68,17 +98,6 @@ export default function Home() {
     </div>
   );
 
-  const refreshButton = (
-    <button
-      onClick={() => fetchData()}
-      disabled={loading}
-      className="flex items-center justify-center p-2 rounded-xl bg-white/5 border border-white/10 text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all cursor-pointer disabled:opacity-50"
-      title="Actualiser les données"
-    >
-      <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-violet-400" : ""}`} />
-    </button>
-  );
-
   if (!isMounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
@@ -87,13 +106,13 @@ export default function Home() {
     );
   }
 
-  if (error && history.length === 0) {
+  if (error && !latest) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-bold text-destructive">Erreur</h2>
           <p className="text-muted-foreground">{error}</p>
-          <Button className="mt-4" onClick={() => fetchData()}>Réessayer</Button>
+          <Button className="mt-4" onClick={() => fetchLatestData()}>Réessayer</Button>
         </div>
       </div>
     );
@@ -102,7 +121,7 @@ export default function Home() {
   return (
     <DashboardTemplate
       title={Title}
-      refreshButton={refreshButton}
+      refreshButton={null}
       overview={<MetricsOverview latest={latest} />}
       services={<ServicesSection latest={latest} />}
       charts={<HistorySection history={history} />}

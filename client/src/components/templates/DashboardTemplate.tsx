@@ -3,7 +3,7 @@ import { LayoutDashboard, Database, TrendingUp, Server } from "lucide-react";
 
 interface DashboardTemplateProps {
   title: ReactNode;
-  refreshButton: ReactNode;
+  refreshButton?: ReactNode;
   overview: ReactNode;
   charts: ReactNode;
   table: ReactNode;
@@ -138,7 +138,7 @@ export const DashboardTemplate = ({
             {activeTab === "dashboard" && (
               <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-end pr-4 md:pr-0 pt-4 pb-6">
-                  <div className="font-poppins text-4xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-br from-white/10 to-white/25 tracking-tight select-none">
+                  <div className="font-poppins text-4xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60 tracking-tight select-none">
                     {timeString || "--:--"}
                   </div>
                 </div>
