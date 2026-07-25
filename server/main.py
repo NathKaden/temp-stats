@@ -43,7 +43,7 @@ async def cron_worker():
         db = SessionLocal()
         use_cases = MetricsUseCases(db)
         print("Running initial startup system metrics capture...")
-        use_cases.collect_and_save()
+        await asyncio.to_thread(use_cases.collect_and_save)
         db.close()
     except Exception as e:
         print(f"Error during initial metrics capture: {e}")
@@ -56,7 +56,7 @@ async def cron_worker():
             db = SessionLocal()
             use_cases = MetricsUseCases(db)
             print("Scheduled capture: collecting system metrics...")
-            use_cases.collect_and_save()
+            await asyncio.to_thread(use_cases.collect_and_save)
             db.close()
         except asyncio.CancelledError:
             print("Cron worker background task cancelled.")

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -12,10 +12,14 @@ interface MetricChartProps {
   dataKey: string;
   color?: string;
   unit?: string;
+  onZoom?: (leftTime: any, rightTime: any) => void;
 }
 
-export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = "" }: MetricChartProps) => {
+export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = "", onZoom }: MetricChartProps) => {
   const [isMounted, setIsMounted] = useState(false);
+  const [isMouseOver, setIsMouseOver] = useState(false);
+  const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
+  const [refAreaRight, setRefAreaRight] = useState<any>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -23,7 +27,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
 
   // Custom tool-tip component
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
+    if (active && isMouseOver && payload && payload.length) {
       let formattedLabel = label;
       try {
         formattedLabel = format(new Date(label), 'PPP HH:mm:ss', { locale: fr });
@@ -59,14 +63,42 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
   }
 
   return (
-    <Card className="col-span-1 rounded-xl border border-white/10 bg-card/40 transition-all duration-300 shadow-xl">
+    <Card className="col-span-1 rounded-xl border border-white/10 bg-card/40 transition-all duration-300 shadow-xl select-none">
       <CardHeader className="pb-4">
         <CardTitle className="text-xs font-semibold tracking-wider text-muted-foreground/80 uppercase">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[200px] w-full">
+        <div 
+          className="h-[200px] w-full"
+          onMouseEnter={() => setIsMouseOver(true)}
+          onMouseLeave={() => setIsMouseOver(false)}
+        >
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+            <AreaChart 
+              data={data} 
+              syncId="history-charts" 
+              margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
+              onMouseDown={(e) => {
+                if (e && e.activeLabel) {
+                  setRefAreaLeft(e.activeLabel);
+                }
+              }}
+              onMouseMove={(e) => {
+                if (refAreaLeft && e && e.activeLabel) {
+                  setRefAreaRight(e.activeLabel);
+                }
+              }}
+              onMouseUp={() => {
+                if (refAreaLeft && refAreaRight && refAreaLeft !== refAreaRight) {
+                  onZoom?.(refAreaLeft, refAreaRight);
+                }
+                setRefAreaLeft(null);
+                setRefAreaRight(null);
+              }}
+              onDoubleClick={() => {
+                onZoom?.(null, null);
+              }}
+            >
               <defs>
                 <linearGradient id={`color${dataKey}`} x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor={color} stopOpacity={0.25} />
@@ -97,7 +129,7 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
               />
               <Tooltip 
                 content={<CustomTooltip />} 
-                cursor={{ stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 }} 
+                cursor={isMouseOver ? { stroke: 'rgba(255,255,255,0.08)', strokeWidth: 1 } : false} 
                 wrapperStyle={{ background: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
               />
               <Area 
@@ -107,7 +139,11 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
                 strokeWidth={2}
                 fillOpacity={1} 
                 fill={`url(#color${dataKey})`} 
+                activeDot={isMouseOver}
               />
+              {refAreaLeft && refAreaRight && (
+                <ReferenceArea x1={refAreaLeft} x2={refAreaRight} strokeOpacity={0.3} fill="rgba(99, 102, 241, 0.2)" />
+              )}
             </AreaChart>
           </ResponsiveContainer>
         </div>

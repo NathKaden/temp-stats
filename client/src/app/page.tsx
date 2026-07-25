@@ -18,6 +18,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "logs">("dashboard");
+  const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">("30d");
 
   const fetchLatestData = async () => {
     try {
@@ -46,11 +47,24 @@ export default function Home() {
     const init = async () => {
       setIsMounted(true);
       setLoading(true);
+      
+      const savedTab = localStorage.getItem("nuc_active_tab");
+      if (savedTab && ["dashboard", "services", "history", "logs"].includes(savedTab)) {
+        setActiveTab(savedTab as any);
+      }
+
       await fetchLatestData();
       setLoading(false);
     };
     init();
   }, []);
+
+  // Save active tab to localStorage whenever it changes
+  useEffect(() => {
+    if (isMounted) {
+      localStorage.setItem("nuc_active_tab", activeTab);
+    }
+  }, [activeTab, isMounted]);
 
   // Fetch history when entering a tab that needs it
   useEffect(() => {
@@ -98,6 +112,32 @@ export default function Home() {
     </div>
   );
 
+  const historyToolbar = (
+    <div className="flex bg-zinc-900/60 p-1 rounded-xl border border-white/5 backdrop-blur-md shrink-0">
+      {(["all", "30d", "7d", "24h"] as const).map((range) => {
+        const labels = {
+          "24h": "24 heures",
+          "7d": "7 jours",
+          "30d": "30 jours",
+          "all": "Tout"
+        };
+        return (
+          <button
+            key={range}
+            onClick={() => setTimeRange(range)}
+            className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 ${
+              timeRange === range
+                ? "bg-white/10 text-violet-300 shadow-sm"
+                : "text-muted-foreground/70 hover:text-foreground bg-transparent"
+            }`}
+          >
+            {labels[range]}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   if (!isMounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-foreground">
@@ -124,11 +164,12 @@ export default function Home() {
       refreshButton={null}
       overview={<MetricsOverview latest={latest} />}
       services={<ServicesSection latest={latest} />}
-      charts={<HistorySection history={history} />}
+      charts={<HistorySection history={history} timeRange={timeRange} />}
       table={<DataTable data={history} />}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
       deviceName={latest?.device_name}
+      historyToolbar={historyToolbar}
     />
   );
 }

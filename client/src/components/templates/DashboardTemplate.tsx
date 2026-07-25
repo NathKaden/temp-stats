@@ -11,6 +11,7 @@ interface DashboardTemplateProps {
   activeTab: "dashboard" | "services" | "history" | "logs";
   setActiveTab: (tab: "dashboard" | "services" | "history" | "logs") => void;
   deviceName?: string;
+  historyToolbar?: ReactNode;
 }
 
 export const DashboardTemplate = ({
@@ -22,7 +23,8 @@ export const DashboardTemplate = ({
   services,
   activeTab,
   setActiveTab,
-  deviceName
+  deviceName,
+  historyToolbar
 }: DashboardTemplateProps) => {
   const [timeString, setTimeString] = useState("");
 
@@ -147,22 +149,25 @@ export const DashboardTemplate = ({
             )}
 
             {activeTab === "services" && (
-              <section className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-4">Services</h2>
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Services</h2>
                 {services}
               </section>
             )}
 
             {activeTab === "history" && (
-              <section className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Historique</h2>
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <div className="flex flex-row items-center justify-between gap-4 ml-1 mb-6 flex-wrap w-full">
+                  <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400">Historique</h2>
+                  {historyToolbar}
+                </div>
                 {charts}
               </section>
             )}
 
             {activeTab === "logs" && (
-              <section className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-4">Journaux de données brutes</h2>
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Journaux bruts</h2>
                 {table}
               </section>
             )}
