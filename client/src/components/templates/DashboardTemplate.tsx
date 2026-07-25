@@ -40,9 +40,9 @@ export const DashboardTemplate = ({
   return (
     <div className="relative flex min-h-screen flex-col md:flex-row bg-background text-foreground overflow-hidden">
       {/* Modern Aurora / Mesh gradient glowing background blobs */}
-      <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-600/12 blur-[130px] pointer-events-none z-0" />
-      <div className="absolute top-[25%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none z-0" />
-      <div className="absolute bottom-[-10%] left-[15%] w-[550px] h-[550px] rounded-full bg-fuchsia-600/8 blur-[140px] pointer-events-none z-0" />
+      <div className="fixed top-[-10%] left-[-5%] w-[600px] h-[600px] rounded-full bg-violet-600/12 blur-[130px] pointer-events-none z-0" />
+      <div className="fixed top-[25%] right-[-10%] w-[500px] h-[500px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none z-0" />
+      <div className="fixed bottom-[-10%] left-[15%] w-[550px] h-[550px] rounded-full bg-fuchsia-600/8 blur-[140px] pointer-events-none z-0" />
 
       {/* Sidebar - Desktop */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 border-r border-border/30 bg-zinc-950/20 backdrop-blur-xl z-20">
@@ -138,7 +138,7 @@ export const DashboardTemplate = ({
             {activeTab === "dashboard" && (
               <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex items-center justify-end pr-4 md:pr-0 pt-4 pb-6">
-                  <div className="font-poppins text-4xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-br from-white to-white/60 tracking-tight select-none">
+                  <div className="font-poppins text-4xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-br from-white/55 to-white/25 tracking-tight select-none">
                     {timeString || "--:--"}
                   </div>
                 </div>
@@ -147,22 +147,22 @@ export const DashboardTemplate = ({
             )}
 
             {activeTab === "services" && (
-              <section className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1 mb-4">Services</h2>
+              <section className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-4">Services</h2>
                 {services}
               </section>
             )}
 
             {activeTab === "history" && (
-              <section className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1 mb-6">Historique</h2>
+              <section className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Historique</h2>
                 {charts}
               </section>
             )}
 
             {activeTab === "logs" && (
-              <section className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1 mb-4">Journaux de données brutes</h2>
+              <section className="pt-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-4">Journaux de données brutes</h2>
                 {table}
               </section>
             )}
@@ -171,43 +171,57 @@ export const DashboardTemplate = ({
       </div>
 
       {/* Bottom Nav Bar - Mobile Only */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 border-t border-border/30 bg-zinc-950/80 backdrop-blur-xl z-20 py-3 px-6 flex justify-around items-center">
-        <button
-          onClick={() => setActiveTab("dashboard")}
-          className={`flex flex-col items-center gap-1.5 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-none ${
-            activeTab === "dashboard" ? "text-violet-300" : "text-muted-foreground/75"
-          }`}
-        >
-          <LayoutDashboard className="h-4.5 w-4.5 transition-colors duration-200" />
-          <span className="text-[10px] font-semibold tracking-wide">Aperçu</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("services")}
-          className={`flex flex-col items-center gap-1.5 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-none ${
-            activeTab === "services" ? "text-violet-300" : "text-muted-foreground/75"
-          }`}
-        >
-          <Server className="h-4.5 w-4.5 transition-colors duration-200" />
-          <span className="text-[10px] font-semibold tracking-wide">Services</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("history")}
-          className={`flex flex-col items-center gap-1.5 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-none ${
-            activeTab === "history" ? "text-violet-300" : "text-muted-foreground/75"
-          }`}
-        >
-          <TrendingUp className="h-4.5 w-4.5 transition-colors duration-200" />
-          <span className="text-[10px] font-semibold tracking-wide">Historique</span>
-        </button>
-        <button
-          onClick={() => setActiveTab("logs")}
-          className={`flex flex-col items-center gap-1.5 transition-colors duration-200 cursor-pointer focus:outline-none focus-visible:outline-none ${
-            activeTab === "logs" ? "text-violet-300" : "text-muted-foreground/75"
-          }`}
-        >
-          <Database className="h-4.5 w-4.5 transition-colors duration-200" />
-          <span className="text-[10px] font-semibold tracking-wide">Journaux</span>
-        </button>
+      <div className="md:hidden fixed bottom-5 inset-x-0 mx-4 z-30 flex justify-center">
+        <div className="flex items-center justify-between w-full max-w-[320px] px-3 py-2 rounded-3xl border border-white/10 bg-zinc-950/40 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+          <button
+            onClick={() => setActiveTab("dashboard")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "dashboard" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "dashboard" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Aperçu</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("services")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "services" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "services" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <Server className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Services</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "history" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Historique</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("logs")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "logs" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "logs" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <Database className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Journaux</span>
+          </button>
+        </div>
       </div>
     </div>
   );

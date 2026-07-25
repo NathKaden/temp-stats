@@ -89,7 +89,7 @@ export default function Home() {
           style={{ filter: "sepia(1) saturate(5) hue-rotate(230deg)" }}
         />
       </div>
-      <h1 className="text-xl tracking-tight text-violet-300 font-bold">
+      <h1 className="text-xl tracking-tight text-violet-300 font-bold font-poppins">
         Dashboard
       </h1>
       {loading && (

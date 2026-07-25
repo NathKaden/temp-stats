@@ -96,10 +96,10 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
   }
 
   return (
-    <div className="flex flex-col gap-10">
+    <div className="flex flex-col gap-16">
       {/* CPU & RAM Section */}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Utilisation</h2>
+      <div className="flex flex-col gap-4 pt-6">
+        <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Utilisation</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
 
           {/* CPU Card */}
@@ -161,6 +161,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                       dataKey="value"
                       stroke="none"
                       cornerRadius={3}
+                      animationDuration={500}
                     >
                       {ramServicesData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -184,7 +185,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
 
       {/* Disks SSD Section */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Stockage</h2>
+        <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Stockage</h2>
         <div className="flex flex-col gap-4">
 
           {/* NVMe SSD Service breakdown Donut Card */}
@@ -241,6 +242,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                       dataKey="value"
                       stroke="none"
                       cornerRadius={3}
+                      animationDuration={500}
                     >
                       {servicesData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
@@ -287,7 +289,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
 
       {/* Others Section */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Activité</h2>
+        <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Activité</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <MetricCard
             title="Puissance"

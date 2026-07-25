@@ -31,10 +31,10 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
   });
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-14">
       {/* Section Utilisation */}
-      <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Utilisation</h2>
+      <div className="flex flex-col gap-4 pt-6">
+        <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Utilisation</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <MetricChart
             title="Température CPU"
@@ -62,7 +62,7 @@ export const HistorySection = ({ history }: HistorySectionProps) => {
 
       {/* Section Activité */}
       <div className="flex flex-col gap-4">
-        <h2 className="text-lg font-semibold tracking-wider text-muted-foreground/50 ml-1">Activité</h2>
+        <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Activité</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <MetricChart
             title="Usage Réseau (Entrant)"
