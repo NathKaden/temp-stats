@@ -13,13 +13,16 @@ interface MetricChartProps {
   color?: string;
   unit?: string;
   onZoom?: (leftTime: any, rightTime: any) => void;
+  onPan?: (shiftAmount: number) => void;
+  chartMode?: "zoom" | "pan";
 }
 
-export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = "", onZoom }: MetricChartProps) => {
+export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = "", onZoom, onPan, chartMode = "zoom" }: MetricChartProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const [isMouseOver, setIsMouseOver] = useState(false);
   const [refAreaLeft, setRefAreaLeft] = useState<any>(null);
   const [refAreaRight, setRefAreaRight] = useState<any>(null);
+  const [panStartIdx, setPanStartIdx] = useState<number | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -71,7 +74,10 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
         <div 
           className="h-[200px] w-full"
           onMouseEnter={() => setIsMouseOver(true)}
-          onMouseLeave={() => setIsMouseOver(false)}
+          onMouseLeave={() => {
+            setIsMouseOver(false);
+            setPanStartIdx(null);
+          }}
         >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart 
@@ -79,17 +85,29 @@ export const MetricChart = ({ title, data, dataKey, color = "#2563eb", unit = ""
               syncId="history-charts" 
               margin={{ top: 5, right: 5, left: -20, bottom: 0 }}
               onMouseDown={(e) => {
-                if (e && e.activeLabel) {
-                  setRefAreaLeft(e.activeLabel);
+                if (e && e.activeLabel && e.activeTooltipIndex !== undefined) {
+                  if (chartMode === "pan") {
+                    setPanStartIdx(e.activeTooltipIndex);
+                  } else {
+                    setRefAreaLeft(e.activeLabel);
+                  }
                 }
               }}
               onMouseMove={(e) => {
-                if (refAreaLeft && e && e.activeLabel) {
+                if (chartMode === "pan" && panStartIdx !== null && e && e.activeTooltipIndex !== undefined) {
+                  const currentIdx = e.activeTooltipIndex;
+                  const diff = panStartIdx - currentIdx;
+                  if (diff !== 0) {
+                    onPan?.(-diff);
+                    setPanStartIdx(currentIdx);
+                  }
+                } else if (chartMode === "zoom" && refAreaLeft && e && e.activeLabel) {
                   setRefAreaRight(e.activeLabel);
                 }
               }}
               onMouseUp={() => {
-                if (refAreaLeft && refAreaRight && refAreaLeft !== refAreaRight) {
+                setPanStartIdx(null);
+                if (chartMode === "zoom" && refAreaLeft && refAreaRight && refAreaLeft !== refAreaRight) {
                   onZoom?.(refAreaLeft, refAreaRight);
                 }
                 setRefAreaLeft(null);

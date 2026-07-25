@@ -9,12 +9,14 @@ interface HistorySectionProps {
 
 export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
   const [zoomDomain, setZoomDomain] = useState<{ left: string; right: string } | null>(null);
+  const [chartMode, setChartMode] = useState<"zoom" | "pan">("zoom");
 
   const reversedHistory = [...history].reverse();
 
   // Reset zoom when timeRange changes from parent toolbar
   useEffect(() => {
     setZoomDomain(null);
+    setChartMode("zoom");
   }, [timeRange]);
 
   const handleZoom = (left: string | null, right: string | null) => {
@@ -23,6 +25,34 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
     } else {
       setZoomDomain({ left, right });
     }
+  };
+
+  const handlePan = (shiftAmount: number) => {
+    if (!zoomDomain) return;
+
+    const idx1 = historyWithCumulative.findIndex(item => item.timestamp === zoomDomain.left);
+    const idx2 = historyWithCumulative.findIndex(item => item.timestamp === zoomDomain.right);
+    if (idx1 === -1 || idx2 === -1) return;
+
+    const minIdx = Math.min(idx1, idx2);
+    const maxIdx = Math.max(idx1, idx2);
+    const windowSize = maxIdx - minIdx;
+
+    let newMinIdx = minIdx + shiftAmount;
+    let newMaxIdx = maxIdx + shiftAmount;
+
+    if (newMinIdx < 0) {
+      newMinIdx = 0;
+      newMaxIdx = Math.min(historyWithCumulative.length - 1, windowSize);
+    } else if (newMaxIdx >= historyWithCumulative.length) {
+      newMaxIdx = historyWithCumulative.length - 1;
+      newMinIdx = Math.max(0, newMaxIdx - windowSize);
+    }
+
+    setZoomDomain({
+      left: historyWithCumulative[newMinIdx].timestamp,
+      right: historyWithCumulative[newMaxIdx].timestamp
+    });
   };
 
   // Filter data points based on selected timeRange
@@ -73,14 +103,70 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
       })
     : historyWithCumulative;
 
+  // Helper to calculate pan step
+  const getPanStep = () => {
+    if (!zoomDomain) return 1;
+    const idx1 = historyWithCumulative.findIndex(item => item.timestamp === zoomDomain.left);
+    const idx2 = historyWithCumulative.findIndex(item => item.timestamp === zoomDomain.right);
+    if (idx1 === -1 || idx2 === -1) return 1;
+    const minIdx = Math.min(idx1, idx2);
+    const maxIdx = Math.max(idx1, idx2);
+    return Math.max(1, Math.round((maxIdx - minIdx) * 0.25));
+  };
+
+  const panStep = getPanStep();
+
   return (
     <div className="flex flex-col gap-16">
-      {/* Zoom Helper Label */}
+      {/* Zoom Helper & Mode Toggle Panel */}
       {zoomDomain && (
-        <div className="flex justify-end -mb-12">
-          <span className="text-[10px] text-muted-foreground/60 mr-1 animate-pulse">
-            Double-cliquez sur un graphique pour zoomer arrière
-          </span>
+        <div className="flex justify-between items-center -mb-12 flex-wrap gap-4 w-full">
+          <div className="flex items-center gap-3.5 flex-wrap">
+            <span className="text-[10px] text-muted-foreground/60 mr-1 animate-pulse">
+              Double-cliquez sur un graphique pour zoomer arrière
+            </span>
+            <div className="flex bg-zinc-900/60 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+              <button
+                onClick={() => handlePan(-panStep)}
+                className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-white/10 text-violet-300 border-0 cursor-pointer flex items-center justify-center transition-all"
+                title="Reculer dans le temps (plus ancien)"
+              >
+                ◀
+              </button>
+              <span className="px-2 text-[10px] font-semibold text-muted-foreground/70 self-center select-none">
+                Déplacer
+              </span>
+              <button
+                onClick={() => handlePan(panStep)}
+                className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-white/10 text-violet-300 border-0 cursor-pointer flex items-center justify-center transition-all"
+                title="Avancer dans le temps (plus récent)"
+              >
+                ▶
+              </button>
+            </div>
+          </div>
+          <div className="flex bg-zinc-900/60 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+            <button
+              onClick={() => setChartMode("zoom")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 flex items-center gap-1.5 ${
+                chartMode === "zoom"
+                  ? "bg-white/10 text-violet-300 shadow-sm"
+                  : "text-muted-foreground/70 hover:text-foreground bg-transparent"
+              }`}
+            >
+              <span>🔍</span> Zoom
+            </button>
+            <button
+              onClick={() => setChartMode("pan")}
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer border-0 flex items-center gap-1.5 ${
+                chartMode === "pan"
+                  ? "bg-white/10 text-violet-300 shadow-sm"
+                  : "text-muted-foreground/70 hover:text-foreground bg-transparent"
+              }`}
+            >
+              <span>✋</span> Glisser
+            </button>
+          </div>
         </div>
       )}
 
@@ -95,6 +181,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#3b82f6"
             unit="°C"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
           <MetricChart
             title="Utilisation CPU"
@@ -103,6 +191,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#60a5fa"
             unit="%"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
           <MetricChart
             title="Utilisation RAM"
@@ -111,6 +201,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#ff2c4c"
             unit="%"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
         </div>
       </div>
@@ -126,6 +218,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#8b5cf6"
             unit=" Mo/s"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
           <MetricChart
             title="Usage Réseau (Sortant)"
@@ -134,6 +228,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#6366f1"
             unit=" Mo/s"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
           <MetricChart
             title="Consommation Électrique"
@@ -142,6 +238,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#eab308"
             unit=" W"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
           <MetricChart
             title="Coût Électrique Cumulé (depuis le 10/07)"
@@ -150,6 +248,8 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
             color="#10b981"
             unit=" €"
             onZoom={handleZoom}
+            onPan={handlePan}
+            chartMode={chartMode}
           />
         </div>
       </div>
