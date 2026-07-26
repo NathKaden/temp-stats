@@ -139,7 +139,7 @@ export const DashboardTemplate = ({
           </div>
         </header>
 
-        <main className="container mx-auto max-w-7xl flex-grow px-4 sm:px-6 lg:px-8 py-8 pb-28 md:pb-8">
+        <main className="container mx-auto max-w-7xl flex-grow px-4 sm:px-6 lg:px-8 py-8 pb-36 md:pb-16">
           <div className="flex flex-col gap-10">
             {activeTab === "dashboard" && (
               <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
