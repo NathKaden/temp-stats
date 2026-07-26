@@ -6,15 +6,10 @@ import {
   Users,
   Terminal,
   Search,
-  MessageSquare,
   Play,
   Pause,
   RefreshCw,
-  Download,
   Wifi,
-  Info,
-  AlertTriangle,
-  XCircle,
   FileText
 } from "lucide-react";
 
@@ -26,8 +21,6 @@ interface MinecraftSectionProps {
 
 export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectionProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [logFilter, setLogFilter] = useState<"all" | "chat" | "info" | "warn" | "error">("all");
-  const [autoScroll, setAutoScroll] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
   const [pausedLogs, setPausedLogs] = useState<string[]>([]);
@@ -41,10 +34,10 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
 
   // Handle auto-scroll to bottom of logs console
   useEffect(() => {
-    if (autoScroll && consoleEndRef.current) {
+    if (consoleEndRef.current) {
       consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [pausedLogs, autoScroll]);
+  }, [pausedLogs]);
 
   if (!status && loading) {
     return (
@@ -104,36 +97,10 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
     );
   };
 
-  // Filter logs based on category and search term
+  // Filter logs based on search term
   const filteredLogs = pausedLogs.filter((line) => {
-    const matchesSearch = line.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    if (!matchesSearch) return false;
-    if (logFilter === "all") return true;
-    
-    const lowerLine = line.toLowerCase();
-    const isInfo = lowerLine.includes("/info");
-    const isWarn = lowerLine.includes("/warn");
-    const isError = lowerLine.includes("/error") || lowerLine.includes("/fatal");
-    const isChat = lowerLine.includes("]: <") && lowerLine.includes(">");
-
-    if (logFilter === "chat") return isChat;
-    if (logFilter === "info") return isInfo && !isChat;
-    if (logFilter === "warn") return isWarn;
-    if (logFilter === "error") return isError;
-    return true;
+    return line.toLowerCase().includes(searchTerm.toLowerCase());
   });
-
-  // Action to download current logs as text file
-  const downloadLogs = () => {
-    const element = document.createElement("a");
-    const file = new Blob([pausedLogs.join("\n")], { type: "text/plain" });
-    element.href = URL.createObjectURL(file);
-    element.download = `minecraft_latest_${new Date().toISOString().split('T')[0]}.log`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
 
   return (
     <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
@@ -272,14 +239,8 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           {/* Console Header */}
           <div className="px-5 py-4 border-b border-white/5 bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              {/* Terminal mock buttons */}
-              <div className="flex gap-1.5 mr-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500/70" />
-                <span className="w-3 h-3 rounded-full bg-amber-500/70" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/70" />
-              </div>
               <Terminal className="h-4 w-4 text-violet-400" />
-              <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console Serveur (latest.log)</h3>
+              <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
             </div>
 
             <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -296,55 +257,12 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 {isPaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
                 <span>{isPaused ? "Gelé" : "Actif"}</span>
               </button>
-
-              {/* Download Logs */}
-              <button
-                onClick={downloadLogs}
-                className="p-1.5 rounded-lg bg-zinc-900/60 border border-white/5 text-muted-foreground hover:text-violet-300 hover:border-violet-500/20 transition-all cursor-pointer"
-                title="Télécharger les logs actuels"
-              >
-                <Download className="h-4 w-4" />
-              </button>
             </div>
           </div>
 
-          {/* Log Filters and Search Toolbar */}
-          <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/20 flex flex-col md:flex-row md:items-center justify-between gap-3 shrink-0">
-            {/* Filter buttons */}
-            <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
-              {(["all", "chat", "info", "warn", "error"] as const).map((filter) => {
-                const labels = {
-                  all: "Tous",
-                  chat: "Tchat",
-                  info: "Infos",
-                  warn: "Alertes",
-                  error: "Erreurs"
-                };
-                const activeColors = {
-                  all: "bg-white/10 text-violet-300 border-white/10",
-                  chat: "bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/20",
-                  info: "bg-cyan-500/10 text-cyan-300 border-cyan-500/20",
-                  warn: "bg-amber-500/10 text-amber-300 border-amber-500/20",
-                  error: "bg-red-500/10 text-red-300 border-red-500/20"
-                };
-                return (
-                  <button
-                    key={filter}
-                    onClick={() => setLogFilter(filter)}
-                    className={`px-3 py-1 text-xs font-semibold rounded-lg border transition-all cursor-pointer shrink-0 ${
-                      logFilter === filter
-                        ? activeColors[filter]
-                        : "bg-transparent text-muted-foreground/60 border-transparent hover:text-foreground"
-                    }`}
-                  >
-                    {labels[filter]}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Keyword Search */}
-            <div className="relative flex-grow md:max-w-xs">
+          {/* Search Toolbar */}
+          <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/20 flex items-center justify-between gap-3 shrink-0">
+            <div className="relative flex-grow">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/45 pointer-events-none" />
               <input
                 type="text"
@@ -381,16 +299,6 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 <span className="text-violet-400/80">Filtré: {filteredLogs.length} lignes</span>
               )}
             </div>
-            
-            <label className="flex items-center gap-1.5 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={autoScroll}
-                onChange={(e) => setAutoScroll(e.target.checked)}
-                className="rounded border-white/10 bg-black/40 text-violet-500 focus:ring-0 focus:ring-offset-0 h-3 w-3"
-              />
-              <span>Défilement auto.</span>
-            </label>
           </div>
         </Card>
       </div>
