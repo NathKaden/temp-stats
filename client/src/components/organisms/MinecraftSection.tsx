@@ -203,11 +203,10 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                         }}
                       />
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-semibold text-foreground/90 truncate leading-snug">
+                    <div className="min-w-0 flex-1">
+                      <span className="text-sm font-semibold text-foreground/90 truncate block">
                         {player}
                       </span>
-                      <span className="text-[10px] text-emerald-400 font-medium">actif</span>
                     </div>
                   </div>
                 ))}
