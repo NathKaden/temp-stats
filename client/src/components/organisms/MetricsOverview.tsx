@@ -38,22 +38,30 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       };
 
       let idx = 0;
-      const serviceItems = Object.entries(parsed)
+      let extraAutresGb = 0;
+      const serviceItems: { name: string; value: number; color: string }[] = [];
+
+      Object.entries(parsed)
         .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
-        .map(([name, val]) => {
-          const value = typeof val === "number" ? val : 0;
-          const color = getServiceColor(name, idx++);
-          return { name, value, color };
+        .forEach(([name, val]) => {
+          const value = typeof val === "number" ? val : 0; // in GB
+          // 100MB threshold (approx 0.1 GB, using < 0.101 to include exactly 0.1 GB as well)
+          if (value < 0.101) {
+            extraAutresGb += value;
+          } else {
+            const color = getServiceColor(name, idx++);
+            serviceItems.push({ name, value, color });
+          }
         });
 
       const autresKey = Object.keys(parsed).find(k => k.toLowerCase() === "autres") || "Autres";
-      const autresVal = parsed[autresKey] || 0;
+      const autresVal = (parsed[autresKey] || 0) + extraAutresGb;
 
       servicesData = [
         ...serviceItems,
         { name: "Autres", value: autresVal, color: colors.autres },
         { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
-      ].filter(item => item.value > 0);
+      ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
     }
   } catch (e) {
     console.error("Failed to parse disk services JSON:", e);
@@ -69,7 +77,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       { name: "Stats", value: statsVal, color: "#ec4899" },
       { name: "Autres", value: autresVal, color: "#f94a29" },
       { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
-    ].filter(item => item.value > 0);
+    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
   }
 
   // Calculate used, total and free memory for RAM
@@ -101,22 +109,30 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       };
 
       let idx = 0;
-      const serviceItems = Object.entries(parsed)
+      let extraAutresGb = 0;
+      const serviceItems: { name: string; value: number; color: string }[] = [];
+
+      Object.entries(parsed)
         .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
-        .map(([name, val]) => {
+        .forEach(([name, val]) => {
           const value = (typeof val === "number" ? val : 0) / 1024.0; // convert MB to GB
-          const color = getServiceColor(name, idx++);
-          return { name, value, color };
+          // 100MB threshold (100 / 1024 = 0.09765625 GB)
+          if (value < 0.0976) {
+            extraAutresGb += value;
+          } else {
+            const color = getServiceColor(name, idx++);
+            serviceItems.push({ name, value, color });
+          }
         });
 
-      const knownServicesGb = serviceItems.reduce((acc, item) => acc + item.value, 0);
-      const autresGb = Math.max(0, ramUsed - knownServicesGb);
+      const knownServicesGb = serviceItems.reduce((acc, item) => acc + item.value, 0) + extraAutresGb;
+      const autresGb = Math.max(0, ramUsed - knownServicesGb) + extraAutresGb;
 
       ramServicesData = [
         ...serviceItems,
         { name: "Autres", value: autresGb, color: colors.autres },
         { name: "Disponible", value: ramFree, color: "rgba(255, 255, 255, 0.1)" }
-      ].filter(item => item.value > 0);
+      ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
     }
   } catch (e) {
     console.error("Failed to parse RAM services JSON:", e);
@@ -132,7 +148,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       { name: "Stats", value: statsValGb, color: "#ec4899" },
       { name: "Autres", value: autresValGb, color: "#f94a29" },
       { name: "Disponible", value: ramFree, color: "rgba(255, 255, 255, 0.1)" }
-    ].filter(item => item.value > 0);
+    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
   }
 
   return (
