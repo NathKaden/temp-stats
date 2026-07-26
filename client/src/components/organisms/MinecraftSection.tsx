@@ -223,7 +223,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
       </div>
 
       {/* RIGHT COLUMN: Interactive Console/Logs */}
-      <div className="xl:col-span-2 flex items-start">
+      <div className="xl:col-span-2 flex">
         <Card className="flex-grow glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl flex flex-col overflow-hidden gap-0 py-0">
           {/* Console Header */}
           <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/40 flex items-center justify-between gap-4 shrink-0">
@@ -264,7 +264,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           </div>
 
           {/* Console Text Container */}
-          <div className="flex-grow p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar h-[450px]">
+          <div className="flex-grow p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar h-0 min-h-[400px]">
             {filteredLogs.length > 0 ? (
               <div className="space-y-0.5">
                 {filteredLogs.map((line, index) => formatLogLine(line, index))}
