@@ -156,22 +156,24 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       {/* CPU & RAM Section */}
       <div className="flex flex-col gap-4 pt-6">
         <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Utilisation</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-5">
 
           {/* CPU Card */}
-          <MetricCard
-            title="CPU"
-            subTitle={latest.cpu_name || "Processeur"}
-            value={latest.cpu_usage}
-            unit="%"
-            icon={<Cpu className="h-6 w-6" />}
-            description={`Température : ${latest.cpu_temp}°C`}
-            color="blue"
-            variant="circle"
-          />
+          <div className="md:col-span-2 flex">
+            <MetricCard
+              title="CPU"
+              subTitle={latest.cpu_name || "Processeur"}
+              value={latest.cpu_usage}
+              unit="%"
+              icon={<Cpu className="h-6 w-6" />}
+              description={`Température : ${latest.cpu_temp}°C`}
+              color="blue"
+              variant="circle"
+            />
+          </div>
 
           {/* RAM Service breakdown Donut Card */}
-          <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(255,44,76,0.18)] group p-5">
+          <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(255,44,76,0.18)] group p-5 md:col-span-3">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 z-10 relative">
               {/* Left Details & Legend */}
               <div className="flex-1 flex flex-col gap-4 w-full">
