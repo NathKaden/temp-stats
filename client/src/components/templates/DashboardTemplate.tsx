@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
-import { LayoutDashboard, Database, TrendingUp, Server } from "lucide-react";
+import { LayoutDashboard, Database, TrendingUp, Server, Sword } from "lucide-react";
 
 interface DashboardTemplateProps {
   title: ReactNode;
@@ -8,8 +8,9 @@ interface DashboardTemplateProps {
   charts: ReactNode;
   table: ReactNode;
   services: ReactNode;
-  activeTab: "dashboard" | "services" | "history" | "logs";
-  setActiveTab: (tab: "dashboard" | "services" | "history" | "logs") => void;
+  minecraft?: ReactNode;
+  activeTab: "dashboard" | "services" | "history" | "minecraft";
+  setActiveTab: (tab: "dashboard" | "services" | "history" | "minecraft") => void;
   deviceName?: string;
   historyToolbar?: ReactNode;
 }
@@ -21,6 +22,7 @@ export const DashboardTemplate = ({
   charts,
   table,
   services,
+  minecraft,
   activeTab,
   setActiveTab,
   deviceName,
@@ -68,17 +70,6 @@ export const DashboardTemplate = ({
               Tableau de bord
             </button>
             <button
-              onClick={() => setActiveTab("services")}
-              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
-                activeTab === "services"
-                  ? "text-violet-300"
-                  : "text-muted-foreground/70 hover:text-foreground"
-              }`}
-            >
-              <Server className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "services" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
-              Services
-            </button>
-            <button
               onClick={() => setActiveTab("history")}
               className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
                 activeTab === "history"
@@ -90,15 +81,27 @@ export const DashboardTemplate = ({
               Historique
             </button>
             <button
-              onClick={() => setActiveTab("logs")}
+              onClick={() => setActiveTab("services")}
               className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
-                activeTab === "logs"
+                activeTab === "services"
                   ? "text-violet-300"
                   : "text-muted-foreground/70 hover:text-foreground"
               }`}
             >
-              <Database className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "logs" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
-              Journaux bruts
+              <Server className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "services" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
+              Services
+            </button>
+
+            <button
+              onClick={() => setActiveTab("minecraft")}
+              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
+                activeTab === "minecraft"
+                  ? "text-violet-300"
+                  : "text-muted-foreground/70 hover:text-foreground"
+              }`}
+            >
+              <Sword className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "minecraft" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
+              Minecraft
             </button>
           </nav>
 
@@ -156,19 +159,25 @@ export const DashboardTemplate = ({
             )}
 
             {activeTab === "history" && (
-              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="flex flex-row items-center justify-between gap-4 ml-1 mb-6 flex-wrap w-full">
-                  <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400">Historique</h2>
-                  {historyToolbar}
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-16">
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-row items-center justify-between gap-4 ml-1 flex-wrap w-full">
+                    <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400">Historique</h2>
+                    {historyToolbar}
+                  </div>
+                  {charts}
                 </div>
-                {charts}
+                <div className="pt-8 space-y-6">
+                  <h3 className="font-poppins text-2xl font-bold tracking-tight text-zinc-400 ml-1">Journaux bruts</h3>
+                  {table}
+                </div>
               </section>
             )}
 
-            {activeTab === "logs" && (
+            {activeTab === "minecraft" && (
               <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Journaux bruts</h2>
-                {table}
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Minecraft</h2>
+                {minecraft}
               </section>
             )}
           </div>
@@ -177,10 +186,10 @@ export const DashboardTemplate = ({
 
       {/* Bottom Nav Bar - Mobile Only */}
       <div className="md:hidden fixed bottom-5 inset-x-0 mx-4 z-30 flex justify-center">
-        <div className="flex items-center justify-between w-full max-w-[320px] px-3 py-2 rounded-3xl border border-white/10 bg-zinc-950/40 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center justify-between w-full max-w-[330px] px-2 py-2 rounded-3xl border border-white/10 bg-zinc-950/40 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "dashboard" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >
@@ -191,8 +200,20 @@ export const DashboardTemplate = ({
             <span className="text-[9px] font-medium tracking-wide">Aperçu</span>
           </button>
           <button
+            onClick={() => setActiveTab("history")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "history" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Histoire</span>
+          </button>
+          <button
             onClick={() => setActiveTab("services")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "services" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >
@@ -203,29 +224,18 @@ export const DashboardTemplate = ({
             <span className="text-[9px] font-medium tracking-wide">Services</span>
           </button>
           <button
-            onClick={() => setActiveTab("history")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            onClick={() => setActiveTab("minecraft")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "minecraft" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >
-            {activeTab === "history" && (
+            {activeTab === "minecraft" && (
               <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
             )}
-            <TrendingUp className="h-4 w-4" />
-            <span className="text-[9px] font-medium tracking-wide">Historique</span>
+            <Sword className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Minecraft</span>
           </button>
-          <button
-            onClick={() => setActiveTab("logs")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "logs" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
-            }`}
-          >
-            {activeTab === "logs" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
-            <Database className="h-4 w-4" />
-            <span className="text-[9px] font-medium tracking-wide">Journaux</span>
-          </button>
+
         </div>
       </div>
     </div>

@@ -6,6 +6,8 @@ from app.core.database import get_db
 from app.interfaces.api import schemas
 from app.use_cases.metrics import MetricsUseCases
 from app.domain.models import SystemMetricDomain
+from app.core.config import settings
+from app.infrastructure.system.minecraft_pinger import MinecraftPinger
 
 router = APIRouter()
 
@@ -80,3 +82,16 @@ def read_devices(db: Session = Depends(get_db)):
         return [latest.device_name]
     from app.infrastructure.system.collector import SystemMetricsCollector
     return [SystemMetricsCollector.get_hostname()]
+
+@router.get("/minecraft", response_model=schemas.MinecraftStatus)
+def read_minecraft_status():
+    pinger = MinecraftPinger(
+        host=settings.MINECRAFT_HOST,
+        port=settings.MINECRAFT_PORT,
+        log_path=settings.MINECRAFT_LOG_PATH
+    )
+    status = pinger.ping()
+    logs = pinger.get_logs(max_lines=100)
+    status["logs"] = logs
+    return status
+

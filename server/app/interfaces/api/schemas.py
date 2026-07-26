@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 class SystemMetricBase(BaseModel):
     device_name: Optional[str] = "default"
@@ -31,3 +31,14 @@ class SystemMetric(SystemMetricBase):
 
     class Config:
         from_attributes = True
+
+class MinecraftStatus(BaseModel):
+    online: bool
+    version: Optional[str] = None
+    players_online: int = 0
+    players_max: int = 0
+    players_list: List[str] = []
+    latency_ms: Optional[float] = None
+    motd: Optional[str] = None
+    logs: List[str] = []
+
