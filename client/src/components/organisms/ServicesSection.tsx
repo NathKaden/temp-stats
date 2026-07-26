@@ -10,7 +10,7 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   if (!latest) return null;
 
   // 1. Parse RAM services usage
-  let ramUsage: Record<string, number> = { Beskarfox: 0, Nextcloud: 0, Outline: 0, Stats: 0 };
+  let ramUsage: Record<string, number> = {};
   try {
     if (latest.ram_services_json) {
       ramUsage = JSON.parse(latest.ram_services_json);
@@ -20,7 +20,7 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   }
 
   // 2. Parse Disk services usage
-  let diskUsage: Record<string, number> = { Beskarfox: 0, Nextcloud: 0, Outline: 0, Stats: 0 };
+  let diskUsage: Record<string, number> = {};
   try {
     if (latest.disk_services_json) {
       diskUsage = JSON.parse(latest.disk_services_json);
@@ -29,7 +29,34 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
     console.error("Failed to parse Disk services JSON:", e);
   }
 
-  // 3. Define services list with icons, colors, domains and names
+  // Track which backend keys were already mapped/consumed
+  const consumedRamKeys = new Set<string>();
+  const consumedDiskKeys = new Set<string>();
+
+  const getServiceRAM = (key: string): number => {
+    const kLower = key.toLowerCase();
+    let total = 0;
+    for (const [rKey, val] of Object.entries(ramUsage)) {
+      if (rKey.toLowerCase() === kLower || rKey.toLowerCase().includes(kLower) || kLower.includes(rKey.toLowerCase())) {
+        total += val;
+        consumedRamKeys.add(rKey);
+      }
+    }
+    return total;
+  };
+
+  const getServiceDisk = (key: string): number => {
+    const kLower = key.toLowerCase();
+    for (const [dKey, val] of Object.entries(diskUsage)) {
+      if (dKey.toLowerCase() === kLower || dKey.toLowerCase().includes(kLower) || kLower.includes(dKey.toLowerCase())) {
+        consumedDiskKeys.add(dKey);
+        return val;
+      }
+    }
+    return 0;
+  };
+
+  // 3. Define services list with resolved metrics, icons, colors, domains and names
   const servicesList = [
     {
       name: "Beskarfox",
@@ -39,9 +66,11 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
       displayUrl: "beskarfox.com",
       icon: <Globe className="h-6 w-6" />,
       color: "emerald",
-      glowColor: "rgba(168, 85, 247, 0.12)",
-      iconBg: "bg-violet-500/10 text-violet-400 border border-violet-500/20",
-      hasMetrics: true
+      glowColor: "rgba(16, 185, 129, 0.12)",
+      iconBg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
+      hasMetrics: true,
+      ram: getServiceRAM("Beskarfox"),
+      disk: getServiceDisk("Beskarfox")
     },
     {
       name: "Nextcloud",
@@ -53,7 +82,9 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
       color: "blue",
       glowColor: "rgba(59, 130, 246, 0.12)",
       iconBg: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
-      hasMetrics: true
+      hasMetrics: true,
+      ram: getServiceRAM("Nextcloud"),
+      disk: getServiceDisk("Nextcloud")
     },
     {
       name: "Stats",
@@ -65,7 +96,9 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
       color: "purple",
       glowColor: "rgba(168, 85, 247, 0.12)",
       iconBg: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
-      hasMetrics: true
+      hasMetrics: true,
+      ram: getServiceRAM("Stats"),
+      disk: getServiceDisk("Stats")
     },
     {
       name: "Outline",
@@ -77,14 +110,52 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
       color: "indigo",
       glowColor: "rgba(99, 102, 241, 0.12)",
       iconBg: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20",
-      hasMetrics: true
+      hasMetrics: true,
+      ram: getServiceRAM("Outline"),
+      disk: getServiceDisk("Outline")
     },
   ];
 
+  // Now create cards for other detected conteneurs/folders
+  const unconsumedKeys = Array.from(new Set([
+    ...Object.keys(ramUsage).filter(k => !consumedRamKeys.has(k)),
+    ...Object.keys(diskUsage).filter(k => !consumedDiskKeys.has(k))
+  ])).filter(key => key.toLowerCase() !== "autres");
+
+  const dynamicServices = unconsumedKeys.map((key, index) => {
+    const colors = ["blue", "purple", "indigo", "emerald", "orange", "cyan"];
+    const color = colors[index % colors.length];
+    
+    const colorMaps: Record<string, { glow: string; bg: string }> = {
+      blue: { glow: "rgba(59, 130, 246, 0.12)", bg: "bg-blue-500/10 text-blue-400 border border-blue-500/20" },
+      purple: { glow: "rgba(168, 85, 247, 0.12)", bg: "bg-purple-500/10 text-purple-400 border border-purple-500/20" },
+      indigo: { glow: "rgba(99, 102, 241, 0.12)", bg: "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" },
+      emerald: { glow: "rgba(16, 185, 129, 0.12)", bg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
+      orange: { glow: "rgba(249, 74, 41, 0.12)", bg: "bg-orange-500/10 text-orange-400 border border-orange-500/20" },
+      cyan: { glow: "rgba(6, 182, 212, 0.12)", bg: "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" },
+    };
+    const mapped = colorMaps[color] || colorMaps.blue;
+
+    return {
+      name: key,
+      key: key,
+      description: "Conteneur Docker / Service",
+      url: "",
+      displayUrl: "",
+      icon: <Cloud className="h-6 w-6" />,
+      color: color,
+      glowColor: mapped.glow,
+      iconBg: mapped.bg,
+      hasMetrics: true,
+      ram: ramUsage[key] || 0,
+      disk: diskUsage[key] || 0
+    };
+  });
+
   // Helper function to render each service card
-  const renderCard = (service: typeof servicesList[0]) => {
-    const memMb = ramUsage[service.key] || 0;
-    const diskGb = diskUsage[service.key] || 0;
+  const renderCard = (service: any) => {
+    const memMb = service.ram || 0;
+    const diskGb = service.disk || 0;
     const isActive = memMb > 0 || !service.hasMetrics;
 
     const formattedMem = memMb >= 1024
@@ -148,17 +219,19 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
         </div>
 
         {/* Link Footer */}
-        <div className="mt-6 pt-4 border-t border-white/5 flex items-center">
-          <a
-            href={service.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-bold text-muted-foreground/75 hover:text-violet-300 transition-colors flex items-center gap-1.5 group/link"
-          >
-            <span>{service.displayUrl}</span>
-            <ExternalLink className="h-3 w-3 opacity-60 transition-all" />
-          </a>
-        </div>
+        {service.url && (
+          <div className="mt-6 pt-4 border-t border-white/5 flex items-center">
+            <a
+              href={service.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold text-muted-foreground/75 hover:text-violet-300 transition-colors flex items-center gap-1.5 group/link"
+            >
+              <span>{service.displayUrl}</span>
+              <ExternalLink className="h-3 w-3 opacity-60 transition-all" />
+            </a>
+          </div>
+        )}
       </Card>
     );
   };
@@ -166,6 +239,14 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   // Group services so Stats is in Col 1 (directly below Beskarfox) and Outline is in Col 2 (below Nextcloud)
   const col1 = [servicesList[0], servicesList[2]]; // Beskarfox, Stats
   const col2 = [servicesList[1], servicesList[3]]; // Nextcloud, Outline
+
+  dynamicServices.forEach((service, index) => {
+    if (index % 2 === 0) {
+      col1.push(service);
+    } else {
+      col2.push(service);
+    }
+  });
 
   return (
     <div className="grid gap-6 grid-cols-1 md:grid-cols-2">

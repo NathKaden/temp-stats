@@ -22,14 +22,46 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
   try {
     if (latest.disk_services_json) {
       const parsed = JSON.parse(latest.disk_services_json);
+      const colors: Record<string, string> = {
+        beskarfox: "#10b981", // Emerald
+        nextcloud: "#a855f7", // Purple
+        outline: "#3b82f6",   // Blue
+        stats: "#ec4899",     // Pink
+        autres: "#f94a29",    // Reddish Orange
+      };
+
+      const getServiceColor = (name: string, index: number) => {
+        const lower = name.toLowerCase();
+        if (colors[lower]) return colors[lower];
+        const extraColors = ["#f59e0b", "#06b6d4", "#84cc16", "#14b8a6", "#6366f1", "#f43f5e"];
+        return extraColors[index % extraColors.length];
+      };
+
+      let idx = 0;
+      let extraAutresGb = 0;
+      const serviceItems: { name: string; value: number; color: string }[] = [];
+
+      Object.entries(parsed)
+        .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
+        .forEach(([name, val]) => {
+          const value = typeof val === "number" ? val : 0; // in GB
+          // 100MB threshold (approx 0.1 GB, using < 0.101 to include exactly 0.1 GB as well)
+          if (value < 0.101) {
+            extraAutresGb += value;
+          } else {
+            const color = getServiceColor(name, idx++);
+            serviceItems.push({ name, value, color });
+          }
+        });
+
+      const autresKey = Object.keys(parsed).find(k => k.toLowerCase() === "autres") || "Autres";
+      const autresVal = (parsed[autresKey] || 0) + extraAutresGb;
+
       servicesData = [
-        { name: "Beskarfox", value: parsed.Beskarfox || 0, color: "#10b981" }, // Emerald
-        { name: "Nextcloud", value: parsed.Nextcloud || 0, color: "#a855f7" }, // Purple
-        { name: "Outline", value: parsed.Outline || 0, color: "#3b82f6" },     // Blue
-        { name: "Stats", value: parsed.Stats || 0, color: "#ec4899" },         // Pink
-        { name: "Autres", value: parsed.Autres || 0, color: "#f94a29" },       // Reddish Orange (Autres)
-        { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" } // Semi-transparent white
-      ].filter(item => item.value > 0);
+        ...serviceItems,
+        { name: "Autres", value: autresVal, color: colors.autres },
+        { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
+      ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
     }
   } catch (e) {
     console.error("Failed to parse disk services JSON:", e);
@@ -45,7 +77,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       { name: "Stats", value: statsVal, color: "#ec4899" },
       { name: "Autres", value: autresVal, color: "#f94a29" },
       { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
-    ].filter(item => item.value > 0);
+    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
   }
 
   // Calculate used, total and free memory for RAM
@@ -59,24 +91,48 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
   try {
     if (latest.ram_services_json) {
       const parsed = JSON.parse(latest.ram_services_json);
+      const colors: Record<string, string> = {
+        beskarfox: "#10b981", // Emerald
+        nextcloud: "#a855f7", // Purple
+        outline: "#3b82f6",   // Blue
+        stats: "#ec4899",     // Pink
+        autres: "#f94a29",    // Reddish Orange
+      };
 
-      // Convert MB values to GB for chart data
-      const beskarfoxGb = (parsed.Beskarfox || 0) / 1024.0;
-      const nextcloudGb = (parsed.Nextcloud || 0) / 1024.0;
-      const outlineGb = (parsed.Outline || 0) / 1024.0;
-      const statsGb = (parsed.Stats || 0) / 1024.0;
+      const getServiceColor = (name: string, index: number) => {
+        const lower = name.toLowerCase();
+        for (const [known, color] of Object.entries(colors)) {
+          if (lower.includes(known)) return color;
+        }
+        const extraColors = ["#f59e0b", "#06b6d4", "#84cc16", "#14b8a6", "#6366f1", "#f43f5e"];
+        return extraColors[index % extraColors.length];
+      };
 
-      const knownServicesGb = beskarfoxGb + nextcloudGb + outlineGb + statsGb;
-      const autresGb = Math.max(0, ramUsed - knownServicesGb);
+      let idx = 0;
+      let extraAutresGb = 0;
+      const serviceItems: { name: string; value: number; color: string }[] = [];
+
+      Object.entries(parsed)
+        .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
+        .forEach(([name, val]) => {
+          const value = (typeof val === "number" ? val : 0) / 1024.0; // convert MB to GB
+          // 100MB threshold (100 / 1024 = 0.09765625 GB)
+          if (value < 0.0976) {
+            extraAutresGb += value;
+          } else {
+            const color = getServiceColor(name, idx++);
+            serviceItems.push({ name, value, color });
+          }
+        });
+
+      const knownServicesGb = serviceItems.reduce((acc, item) => acc + item.value, 0) + extraAutresGb;
+      const autresGb = Math.max(0, ramUsed - knownServicesGb) + extraAutresGb;
 
       ramServicesData = [
-        { name: "Beskarfox", value: beskarfoxGb, color: "#10b981" }, // Emerald
-        { name: "Nextcloud", value: nextcloudGb, color: "#a855f7" }, // Purple
-        { name: "Outline", value: outlineGb, color: "#3b82f6" },     // Blue
-        { name: "Stats", value: statsGb, color: "#ec4899" },         // Pink
-        { name: "Autres", value: autresGb, color: "#f94a29" },       // Reddish Orange (Autres)
+        ...serviceItems,
+        { name: "Autres", value: autresGb, color: colors.autres },
         { name: "Disponible", value: ramFree, color: "rgba(255, 255, 255, 0.1)" }
-      ].filter(item => item.value > 0);
+      ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
     }
   } catch (e) {
     console.error("Failed to parse RAM services JSON:", e);
@@ -92,7 +148,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       { name: "Stats", value: statsValGb, color: "#ec4899" },
       { name: "Autres", value: autresValGb, color: "#f94a29" },
       { name: "Disponible", value: ramFree, color: "rgba(255, 255, 255, 0.1)" }
-    ].filter(item => item.value > 0);
+    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
   }
 
   return (
@@ -128,35 +184,48 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                     <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">RAM</span>
                   </div>
                 </div>
-
                   {/* Legend Grid */}
                   <div className="grid grid-cols-[max-content_max-content] gap-x-4 gap-y-1 mt-1">
-                      {ramServicesData.map((item, idx) => (
+                      {ramServicesData.filter(item => item.name !== "Autres" && item.name !== "Disponible").map((item, idx) => (
                           <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                               <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                               <span className="font-semibold text-foreground/90">{item.name} :</span>
                               <span className="text-muted-foreground">
-        {item.name === "Disponible"
-            ? `${item.value.toFixed(1)} Go`
-            : item.value >= 1.0
-                ? `${item.value.toFixed(1)} Go`
-                : `${(item.value * 1024).toFixed(0)} Mo`}
-      </span>
+                                {item.value >= 1.0
+                                    ? `${item.value.toFixed(1)} Go`
+                                    : `${(item.value * 1024).toFixed(0)} Mo`}
+                              </span>
+                          </div>
+                      ))}
+                  </div>
+                  {/* System Legend at the end */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2 border-t border-white/5">
+                      {ramServicesData.filter(item => item.name === "Autres" || item.name === "Disponible").map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="font-semibold text-foreground/90">{item.name} :</span>
+                              <span className="text-muted-foreground">
+                                {item.name === "Disponible"
+                                    ? `${item.value.toFixed(1)} Go`
+                                    : item.value >= 1.0
+                                        ? `${item.value.toFixed(1)} Go`
+                                        : `${(item.value * 1024).toFixed(0)} Mo`}
+                              </span>
                           </div>
                       ))}
                   </div>
               </div>
 
               {/* Right Donut Chart */}
-              <div className="relative h-28 w-28 shrink-0 flex items-center justify-center">
+              <div className="relative h-32 w-32 shrink-0 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={ramServicesData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={36}
-                      outerRadius={44}
+                      innerRadius={42}
+                      outerRadius={50}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -169,12 +238,11 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="flex items-baseline text-foreground">
-                    <span className="text-xl font-extrabold tracking-tight">{ramPercent}</span>
-                    <span className="text-sm font-bold text-muted-foreground/60 ml-0.5">%</span>
+                    <span className="text-2xl font-semibold tracking-tight">{ramPercent}</span>
+                    <span className="text-sm font-semibold text-muted-foreground/60 ml-0.5">%</span>
                   </div>
-                  <span className="text-xs font-bold text-muted-foreground/50">Utilisé</span>
                 </div>
               </div>
             </div>
@@ -212,7 +280,21 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
 
                 {/* Legend Grid (stuck together in 2 columns) */}
                 <div className="grid grid-cols-[max-content_max-content] gap-x-4 gap-y-1 mt-1">
-                  {servicesData.map((item, idx) => (
+                  {servicesData.filter(item => item.name !== "Autres" && item.name !== "Disponible").map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="font-semibold text-foreground/90">{item.name} :</span>
+                      <span className="text-muted-foreground">
+                        {item.value >= 1.0
+                            ? `${item.value.toFixed(1)} Go`
+                            : `${(item.value * 1024).toFixed(0)} Mo`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {/* System Legend at the end */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2 border-t border-white/5">
+                  {servicesData.filter(item => item.name === "Autres" || item.name === "Disponible").map((item, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                       <span className="font-semibold text-foreground/90">{item.name} :</span>
@@ -229,15 +311,15 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               </div>
 
               {/* Right Donut Chart */}
-              <div className="relative h-28 w-28 shrink-0 flex items-center justify-center">
+              <div className="relative h-32 w-32 shrink-0 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={servicesData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={36}
-                      outerRadius={44}
+                      innerRadius={42}
+                      outerRadius={50}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -250,12 +332,11 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="flex items-baseline text-foreground">
-                    <span className="text-xl font-extrabold tracking-tight">{nvmePercent}</span>
-                    <span className="text-sm font-bold text-muted-foreground/60 ml-0.5">%</span>
+                    <span className="text-2xl font-semibold tracking-tight">{nvmePercent}</span>
+                    <span className="text-sm font-semibold text-muted-foreground/60 ml-0.5">%</span>
                   </div>
-                  <span className="text-xs font-bold text-muted-foreground/50">Utilisé</span>
                 </div>
               </div>
             </div>
