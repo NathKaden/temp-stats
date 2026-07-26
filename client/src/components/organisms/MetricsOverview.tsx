@@ -168,20 +168,33 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                     <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">RAM</span>
                   </div>
                 </div>
-
                   {/* Legend Grid */}
                   <div className="grid grid-cols-[max-content_max-content] gap-x-4 gap-y-1 mt-1">
-                      {ramServicesData.map((item, idx) => (
+                      {ramServicesData.filter(item => item.name !== "Autres" && item.name !== "Disponible").map((item, idx) => (
                           <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                               <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                               <span className="font-semibold text-foreground/90">{item.name} :</span>
                               <span className="text-muted-foreground">
-        {item.name === "Disponible"
-            ? `${item.value.toFixed(1)} Go`
-            : item.value >= 1.0
-                ? `${item.value.toFixed(1)} Go`
-                : `${(item.value * 1024).toFixed(0)} Mo`}
-      </span>
+                                {item.value >= 1.0
+                                    ? `${item.value.toFixed(1)} Go`
+                                    : `${(item.value * 1024).toFixed(0)} Mo`}
+                              </span>
+                          </div>
+                      ))}
+                  </div>
+                  {/* System Legend at the end */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2 border-t border-white/5">
+                      {ramServicesData.filter(item => item.name === "Autres" || item.name === "Disponible").map((item, idx) => (
+                          <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                              <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                              <span className="font-semibold text-foreground/90">{item.name} :</span>
+                              <span className="text-muted-foreground">
+                                {item.name === "Disponible"
+                                    ? `${item.value.toFixed(1)} Go`
+                                    : item.value >= 1.0
+                                        ? `${item.value.toFixed(1)} Go`
+                                        : `${(item.value * 1024).toFixed(0)} Mo`}
+                              </span>
                           </div>
                       ))}
                   </div>
@@ -252,7 +265,21 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
 
                 {/* Legend Grid (stuck together in 2 columns) */}
                 <div className="grid grid-cols-[max-content_max-content] gap-x-4 gap-y-1 mt-1">
-                  {servicesData.map((item, idx) => (
+                  {servicesData.filter(item => item.name !== "Autres" && item.name !== "Disponible").map((item, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                      <span className="font-semibold text-foreground/90">{item.name} :</span>
+                      <span className="text-muted-foreground">
+                        {item.value >= 1.0
+                            ? `${item.value.toFixed(1)} Go`
+                            : `${(item.value * 1024).toFixed(0)} Mo`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                {/* System Legend at the end */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2 border-t border-white/5">
+                  {servicesData.filter(item => item.name === "Autres" || item.name === "Disponible").map((item, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                       <span className="font-semibold text-foreground/90">{item.name} :</span>
