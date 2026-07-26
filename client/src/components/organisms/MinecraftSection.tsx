@@ -231,7 +231,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               <Terminal className="h-4 w-4 text-violet-400" />
               <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
               <span className="text-[10px] text-muted-foreground/50 font-mono bg-black/30 border border-white/5 px-2 py-0.5 rounded-md">
-                {filteredLogs.length !== pausedLogs.length ? `${filteredLogs.length}/` : ""}{pausedLogs.length}
+                {filteredLogs.length !== pausedLogs.length ? `${filteredLogs.length}/` : ""}{pausedLogs.length} lignes
               </span>
             </div>
 
@@ -264,7 +264,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           </div>
 
           {/* Console Text Container */}
-          <div className="flex-grow p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar max-h-[500px]">
+          <div className="flex-grow p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar">
             {filteredLogs.length > 0 ? (
               <div className="space-y-0.5">
                 {filteredLogs.map((line, index) => formatLogLine(line, index))}

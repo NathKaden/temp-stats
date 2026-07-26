@@ -159,7 +159,7 @@ export const DashboardTemplate = ({
             )}
 
             {activeTab === "history" && (
-              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-10">
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700 space-y-16">
                 <div className="flex flex-col gap-6">
                   <div className="flex flex-row items-center justify-between gap-4 ml-1 flex-wrap w-full">
                     <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400">Historique</h2>
@@ -167,7 +167,7 @@ export const DashboardTemplate = ({
                   </div>
                   {charts}
                 </div>
-                <div className="space-y-6 pt-6 border-t border-white/5">
+                <div className="pt-8 space-y-6">
                   <h3 className="font-poppins text-2xl font-bold tracking-tight text-zinc-400 ml-1">Journaux bruts</h3>
                   {table}
                 </div>
