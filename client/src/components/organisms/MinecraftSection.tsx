@@ -128,16 +128,6 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 <span className="text-xs text-muted-foreground/60">Paper</span>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={onRefresh}
-                disabled={loading}
-                className="p-2 rounded-lg bg-zinc-900/60 border border-white/5 text-muted-foreground hover:text-violet-300 hover:border-violet-500/20 transition-all cursor-pointer disabled:opacity-40"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin text-violet-400" : ""}`} />
-              </button>
-            </div>
           </div>
 
           <div className="space-y-4">
