@@ -20,3 +20,15 @@ export interface SystemMetric {
   cpu_name?: string;
   ram_services_json?: string;
 }
+
+export interface MinecraftStatus {
+  online: boolean;
+  version: string | null;
+  players_online: number;
+  players_max: number;
+  players_list: string[];
+  latency_ms: number | null;
+  motd: string | null;
+  logs: string[];
+}
+

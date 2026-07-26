@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SystemMetric } from '@/types';
+import { SystemMetric, MinecraftStatus } from '@/types';
 
 let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -36,5 +36,9 @@ export const metricsService = {
     } catch (e) {
       return ["host-machine"];
     }
+  },
+  getMinecraftStatus: async (): Promise<MinecraftStatus> => {
+    const response = await api.get<MinecraftStatus>('/api/minecraft');
+    return response.data;
   },
 };

@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
-import { LayoutDashboard, Database, TrendingUp, Server } from "lucide-react";
+import { LayoutDashboard, Database, TrendingUp, Server, Gamepad2 } from "lucide-react";
 
 interface DashboardTemplateProps {
   title: ReactNode;
@@ -8,8 +8,9 @@ interface DashboardTemplateProps {
   charts: ReactNode;
   table: ReactNode;
   services: ReactNode;
-  activeTab: "dashboard" | "services" | "history" | "logs";
-  setActiveTab: (tab: "dashboard" | "services" | "history" | "logs") => void;
+  minecraft?: ReactNode;
+  activeTab: "dashboard" | "services" | "history" | "logs" | "minecraft";
+  setActiveTab: (tab: "dashboard" | "services" | "history" | "logs" | "minecraft") => void;
   deviceName?: string;
   historyToolbar?: ReactNode;
 }
@@ -21,6 +22,7 @@ export const DashboardTemplate = ({
   charts,
   table,
   services,
+  minecraft,
   activeTab,
   setActiveTab,
   deviceName,
@@ -100,6 +102,17 @@ export const DashboardTemplate = ({
               <Database className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "logs" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
               Journaux bruts
             </button>
+            <button
+              onClick={() => setActiveTab("minecraft")}
+              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
+                activeTab === "minecraft"
+                  ? "text-violet-300"
+                  : "text-muted-foreground/70 hover:text-foreground"
+              }`}
+            >
+              <Gamepad2 className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "minecraft" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
+              Minecraft
+            </button>
           </nav>
 
           {/* Refresh Action in Sidebar (Desktop) */}
@@ -171,16 +184,23 @@ export const DashboardTemplate = ({
                 {table}
               </section>
             )}
+
+            {activeTab === "minecraft" && (
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Minecraft</h2>
+                {minecraft}
+              </section>
+            )}
           </div>
         </main>
       </div>
 
       {/* Bottom Nav Bar - Mobile Only */}
       <div className="md:hidden fixed bottom-5 inset-x-0 mx-4 z-30 flex justify-center">
-        <div className="flex items-center justify-between w-full max-w-[320px] px-3 py-2 rounded-3xl border border-white/10 bg-zinc-950/40 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center justify-between w-full max-w-[380px] px-2 py-2 rounded-3xl border border-white/10 bg-zinc-950/40 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           <button
             onClick={() => setActiveTab("dashboard")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "dashboard" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >
@@ -192,7 +212,7 @@ export const DashboardTemplate = ({
           </button>
           <button
             onClick={() => setActiveTab("services")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "services" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >
@@ -203,8 +223,20 @@ export const DashboardTemplate = ({
             <span className="text-[9px] font-medium tracking-wide">Services</span>
           </button>
           <button
+            onClick={() => setActiveTab("minecraft")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "minecraft" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "minecraft" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <Gamepad2 className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Minecraft</span>
+          </button>
+          <button
             onClick={() => setActiveTab("history")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >
@@ -212,11 +244,11 @@ export const DashboardTemplate = ({
               <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
             )}
             <TrendingUp className="h-4 w-4" />
-            <span className="text-[9px] font-medium tracking-wide">Historique</span>
+            <span className="text-[9px] font-medium tracking-wide">Histoire</span>
           </button>
           <button
             onClick={() => setActiveTab("logs")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-4 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "logs" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
             }`}
           >

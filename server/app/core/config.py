@@ -15,8 +15,14 @@ class Settings(BaseSettings):
     # Cron interval in seconds (default is 1 hour = 3600 seconds)
     COLLECTION_INTERVAL_SECONDS: int = int(os.getenv("COLLECTION_INTERVAL_SECONDS", "3600"))
 
+    # Minecraft Server settings
+    MINECRAFT_HOST: str = os.getenv("MINECRAFT_HOST", "minecraft-paper")
+    MINECRAFT_PORT: int = int(os.getenv("MINECRAFT_PORT", "25565"))
+    MINECRAFT_LOG_PATH: str = os.getenv("MINECRAFT_LOG_PATH", "/opt/minecraft/data/logs/latest.log")
+
     class Config:
         env_file = ".env"
         extra = "ignore"
 
 settings = Settings()
+

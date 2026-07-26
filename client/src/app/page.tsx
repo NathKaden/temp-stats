@@ -6,8 +6,9 @@ import { MetricsOverview } from "@/components/organisms/MetricsOverview";
 import { ServicesSection } from "@/components/organisms/ServicesSection";
 import { HistorySection } from "@/components/organisms/HistorySection";
 import { DataTable } from "@/components/molecules/DataTable";
+import { MinecraftSection } from "@/components/organisms/MinecraftSection";
 import { metricsService } from "@/services/api";
-import { SystemMetric } from "@/types";
+import { SystemMetric, MinecraftStatus } from "@/types";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -17,8 +18,12 @@ export default function Home() {
   const [history, setHistory] = useState<SystemMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "logs">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "logs" | "minecraft">("dashboard");
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">("30d");
+
+  // Minecraft specific states
+  const [minecraftStatus, setMinecraftStatus] = useState<MinecraftStatus | null>(null);
+  const [minecraftLoading, setMinecraftLoading] = useState(false);
 
   const fetchLatestData = async () => {
     try {
@@ -42,6 +47,18 @@ export default function Home() {
     }
   };
 
+  const fetchMinecraftData = async (showLoading = false) => {
+    try {
+      if (showLoading) setMinecraftLoading(true);
+      const data = await metricsService.getMinecraftStatus();
+      setMinecraftStatus(data);
+    } catch (err) {
+      console.error("Failed to fetch Minecraft status:", err);
+    } finally {
+      if (showLoading) setMinecraftLoading(false);
+    }
+  };
+
   // Initial load: fetch latest data only (loads instantly)
   useEffect(() => {
     const init = async () => {
@@ -49,7 +66,7 @@ export default function Home() {
       setLoading(true);
       
       const savedTab = localStorage.getItem("nuc_active_tab");
-      if (savedTab && ["dashboard", "services", "history", "logs"].includes(savedTab)) {
+      if (savedTab && ["dashboard", "services", "history", "logs", "minecraft"].includes(savedTab)) {
         setActiveTab(savedTab as any);
       }
 
@@ -66,14 +83,18 @@ export default function Home() {
     }
   }, [activeTab, isMounted]);
 
-  // Fetch history when entering a tab that needs it
+  // Fetch tab data when entering a tab that needs it
   useEffect(() => {
-    if (isMounted && (activeTab === "history" || activeTab === "logs")) {
-      fetchHistoryData();
+    if (isMounted) {
+      if (activeTab === "history" || activeTab === "logs") {
+        fetchHistoryData();
+      } else if (activeTab === "minecraft") {
+        fetchMinecraftData(true);
+      }
     }
   }, [activeTab, isMounted]);
 
-  // Poll for data: poll latest every 5s, poll history every 30s if on history/logs tab
+  // Poll for data: poll latest every 5s, poll history every 30s if on history/logs tab, poll minecraft every 5s if active
   useEffect(() => {
     if (isMounted) {
       const intervalLatest = setInterval(() => {
@@ -86,9 +107,16 @@ export default function Home() {
         }
       }, 30000);
 
+      const intervalMinecraft = setInterval(() => {
+        if (activeTab === "minecraft") {
+          fetchMinecraftData();
+        }
+      }, 5000);
+
       return () => {
         clearInterval(intervalLatest);
         clearInterval(intervalHistory);
+        clearInterval(intervalMinecraft);
       };
     }
   }, [isMounted, activeTab]);
@@ -106,7 +134,7 @@ export default function Home() {
       <h1 className="text-xl tracking-tight text-violet-300 font-bold font-poppins">
         Dashboard
       </h1>
-      {loading && (
+      {(loading || (activeTab === "minecraft" && minecraftLoading)) && (
         <Loader2 className="h-4 w-4 animate-spin text-violet-400/60 ml-1.5 shrink-0" />
       )}
     </div>
@@ -166,6 +194,13 @@ export default function Home() {
       services={<ServicesSection latest={latest} />}
       charts={<HistorySection history={history} timeRange={timeRange} />}
       table={<DataTable data={history} />}
+      minecraft={
+        <MinecraftSection 
+          status={minecraftStatus} 
+          loading={minecraftLoading} 
+          onRefresh={() => fetchMinecraftData(true)} 
+        />
+      }
       activeTab={activeTab}
       setActiveTab={setActiveTab}
       deviceName={latest?.device_name}
