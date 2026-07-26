@@ -70,17 +70,6 @@ export const DashboardTemplate = ({
               Tableau de bord
             </button>
             <button
-              onClick={() => setActiveTab("services")}
-              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
-                activeTab === "services"
-                  ? "text-violet-300"
-                  : "text-muted-foreground/70 hover:text-foreground"
-              }`}
-            >
-              <Server className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "services" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
-              Services
-            </button>
-            <button
               onClick={() => setActiveTab("history")}
               className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
                 activeTab === "history"
@@ -90,6 +79,17 @@ export const DashboardTemplate = ({
             >
               <TrendingUp className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "history" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
               Historique
+            </button>
+            <button
+              onClick={() => setActiveTab("services")}
+              className={`flex items-center w-full px-4 py-2.5 text-sm font-medium tracking-wide rounded-xl transition-all duration-200 group cursor-pointer focus:outline-none focus-visible:outline-none border-0 bg-transparent ${
+                activeTab === "services"
+                  ? "text-violet-300"
+                  : "text-muted-foreground/70 hover:text-foreground"
+              }`}
+            >
+              <Server className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "services" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
+              Services
             </button>
             <button
               onClick={() => setActiveTab("logs")}
@@ -211,6 +211,18 @@ export const DashboardTemplate = ({
             <span className="text-[9px] font-medium tracking-wide">Aperçu</span>
           </button>
           <button
+            onClick={() => setActiveTab("history")}
+            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
+              activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+            }`}
+          >
+            {activeTab === "history" && (
+              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
+            )}
+            <TrendingUp className="h-4 w-4" />
+            <span className="text-[9px] font-medium tracking-wide">Histoire</span>
+          </button>
+          <button
             onClick={() => setActiveTab("services")}
             className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
               activeTab === "services" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
@@ -233,18 +245,6 @@ export const DashboardTemplate = ({
             )}
             <Sword className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Minecraft</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("history")}
-            className={`relative flex flex-col items-center gap-1 py-1.5 px-2.5 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
-            }`}
-          >
-            {activeTab === "history" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
-            <TrendingUp className="h-4 w-4" />
-            <span className="text-[9px] font-medium tracking-wide">Histoire</span>
           </button>
           <button
             onClick={() => setActiveTab("logs")}
