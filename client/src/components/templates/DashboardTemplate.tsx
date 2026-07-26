@@ -1,5 +1,5 @@
 import { ReactNode, useState, useEffect } from "react";
-import { LayoutDashboard, Database, TrendingUp, Server, Gamepad2 } from "lucide-react";
+import { LayoutDashboard, Database, TrendingUp, Server, Sword } from "lucide-react";
 
 interface DashboardTemplateProps {
   title: ReactNode;
@@ -110,7 +110,7 @@ export const DashboardTemplate = ({
                   : "text-muted-foreground/70 hover:text-foreground"
               }`}
             >
-              <Gamepad2 className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "minecraft" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
+              <Sword className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "minecraft" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
               Minecraft
             </button>
           </nav>
@@ -231,7 +231,7 @@ export const DashboardTemplate = ({
             {activeTab === "minecraft" && (
               <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
             )}
-            <Gamepad2 className="h-4 w-4" />
+            <Sword className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Minecraft</span>
           </button>
           <button

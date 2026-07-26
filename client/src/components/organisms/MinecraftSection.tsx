@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { MinecraftStatus } from "@/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Gamepad2,
+  Sword,
   Users,
   Terminal,
   Search,
@@ -121,7 +121,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                   ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
                   : "bg-rose-500/10 text-rose-400 border-rose-500/20"
               }`}>
-                <Gamepad2 className="h-6 w-6" />
+                <Sword className="h-6 w-6" />
               </div>
               <div>
                 <h3 className="font-bold text-lg text-foreground/90 leading-tight">Minecraft</h3>
@@ -248,15 +248,14 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               {/* Play/Pause refresh stream */}
               <button
                 onClick={() => setIsPaused(!isPaused)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                className={`p-2 rounded-lg border transition-all cursor-pointer ${
                   isPaused
                     ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
                     : "bg-zinc-900/60 text-muted-foreground border-white/5 hover:text-foreground hover:bg-zinc-900"
                 }`}
                 title={isPaused ? "Reprendre le flux en direct" : "Geler le flux des logs"}
               >
-                {isPaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
-                <span>{isPaused ? "Gelé" : "Actif"}</span>
+                {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
               </button>
             </div>
           </div>
