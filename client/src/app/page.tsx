@@ -18,7 +18,7 @@ export default function Home() {
   const [history, setHistory] = useState<SystemMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "logs" | "minecraft">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "minecraft">("dashboard");
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">("30d");
 
   // Minecraft specific states
@@ -66,7 +66,7 @@ export default function Home() {
       setLoading(true);
       
       const savedTab = localStorage.getItem("nuc_active_tab");
-      if (savedTab && ["dashboard", "services", "history", "logs", "minecraft"].includes(savedTab)) {
+      if (savedTab && ["dashboard", "services", "history", "minecraft"].includes(savedTab)) {
         setActiveTab(savedTab as any);
       }
 
@@ -86,7 +86,7 @@ export default function Home() {
   // Fetch tab data when entering a tab that needs it
   useEffect(() => {
     if (isMounted) {
-      if (activeTab === "history" || activeTab === "logs") {
+      if (activeTab === "history") {
         fetchHistoryData();
       } else if (activeTab === "minecraft") {
         fetchMinecraftData(true);
@@ -95,6 +95,7 @@ export default function Home() {
   }, [activeTab, isMounted]);
 
   // Poll for data: poll latest every 5s, poll history every 30s if on history/logs tab, poll minecraft every 5s if active
+  // Poll for data: poll latest every 5s, poll history every 30s if on history tab, poll minecraft every 5s if active
   useEffect(() => {
     if (isMounted) {
       const intervalLatest = setInterval(() => {
@@ -102,7 +103,7 @@ export default function Home() {
       }, 5000);
 
       const intervalHistory = setInterval(() => {
-        if (activeTab === "history" || activeTab === "logs") {
+        if (activeTab === "history") {
           fetchHistoryData();
         }
       }, 30000);
