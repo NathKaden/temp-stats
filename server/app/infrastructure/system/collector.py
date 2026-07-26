@@ -116,6 +116,17 @@ class SystemMetricsCollector:
         import subprocess
 
         ram_usage = {}
+        
+        known_names = {
+            "beskarfox": "Beskarfox",
+            "nextcloud": "Nextcloud",
+            "outline": "Outline",
+            "nuc-stats": "Stats",
+            "temp-stats": "Stats",
+            "stats": "Stats",
+            "minecraft": "Minecraft",
+            "traefik": "Traefik"
+        }
 
         # 1. Try Docker socket query and cgroups reading
         containers = SystemMetricsCollector.query_docker_socket("/containers/json")
@@ -126,10 +137,21 @@ class SystemMetricsCollector:
                 if not c_id or not names:
                     continue
                 name = names[0].lstrip('/')
+                
+                # Group by compose project name if available, otherwise by container prefix
+                labels = container.get("Labels", {})
+                project = labels.get("com.docker.compose.project")
+                if not project:
+                    proj_parts = name.replace('_', '-').split('-')
+                    project = proj_parts[0] if proj_parts else name
+                
+                project = project.strip().lower()
+                project_display = known_names.get(project, project.capitalize())
+                
                 mem_bytes = SystemMetricsCollector.get_container_mem_usage(c_id)
                 mem_mb = mem_bytes / (1024.0 * 1024.0)
                 if mem_mb > 0:
-                    ram_usage[name] = round(mem_mb, 1)
+                    ram_usage[project_display] = round(ram_usage.get(project_display, 0.0) + mem_mb, 1)
 
         # 2. Fallback to docker stats CLI if socket returned nothing (e.g. running outside docker, or permissions issues)
         if not ram_usage:
@@ -166,21 +188,22 @@ class SystemMetricsCollector:
                                 mem_mb = value
                         except ValueError:
                             pass
-                        ram_usage[name] = round(mem_mb, 1)
+                        
+                        if mem_mb > 0:
+                            proj_parts = name.replace('_', '-').split('-')
+                            project = proj_parts[0] if proj_parts else name
+                            project = project.strip().lower()
+                            project_display = known_names.get(project, project.capitalize())
+                            ram_usage[project_display] = round(ram_usage.get(project_display, 0.0) + mem_mb, 1)
             except Exception:
                 pass
 
         # 3. Always ensure our local Stats process is represented
         try:
+            import psutil
             process = psutil.Process(os.getpid())
             local_stats_mb = process.memory_info().rss / (1024.0 * 1024.0)
-            stats_key = "nuc-stats-server"
-            # If we don't have nuc-stats-server, try stats or create/add to it
-            if stats_key not in ram_usage:
-                # Find if any key contains 'stats'
-                found_key = next((k for k in ram_usage.keys() if 'stats' in k.lower()), None)
-                if found_key:
-                    stats_key = found_key
+            stats_key = "Stats"
             ram_usage[stats_key] = round(ram_usage.get(stats_key, 0.0) + local_stats_mb, 1)
         except Exception:
             pass
@@ -428,14 +451,32 @@ class SystemMetricsCollector:
             except Exception:
                 pass
 
+        # Normalize and group keys under clean names
+        known_names = {
+            "beskarfox": "Beskarfox",
+            "nextcloud": "Nextcloud",
+            "outline": "Outline",
+            "nuc-stats": "Stats",
+            "temp-stats": "Stats",
+            "stats": "Stats",
+            "minecraft": "Minecraft",
+            "traefik": "Traefik"
+        }
+        
+        grouped_breakdown = {}
+        for key, val in services_breakdown.items():
+            lower_key = key.lower().strip()
+            clean_key = known_names.get(lower_key, key.capitalize())
+            grouped_breakdown[clean_key] = round(grouped_breakdown.get(clean_key, 0.0) + val, 1)
+
         # Calculate 'Autres' (Others)
-        known_size = sum(services_breakdown.values())
+        known_size = sum(v for k, v in grouped_breakdown.items() if k != "Autres")
         autres_size = round(disk_usage_gb - known_size, 1)
         if autres_size < 0:
             autres_size = 0.0
 
-        services_breakdown["Autres"] = autres_size
-        disk_services_json = json.dumps(services_breakdown)
+        grouped_breakdown["Autres"] = autres_size
+        disk_services_json = json.dumps(grouped_breakdown)
 
         disk_sata_total_gb = 480.0
         disk_sata_usage_gb = 120.0
