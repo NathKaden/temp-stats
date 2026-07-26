@@ -102,7 +102,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   });
 
   return (
-    <div className="grid gap-6 grid-cols-1 xl:grid-cols-3 pb-16">
+    <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
       {/* LEFT COLUMN: Status and Players list */}
       <div className="xl:col-span-1 flex flex-col gap-6">
         
