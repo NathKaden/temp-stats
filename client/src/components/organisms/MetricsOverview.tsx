@@ -22,13 +22,37 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
   try {
     if (latest.disk_services_json) {
       const parsed = JSON.parse(latest.disk_services_json);
+      const colors: Record<string, string> = {
+        beskarfox: "#10b981", // Emerald
+        nextcloud: "#a855f7", // Purple
+        outline: "#3b82f6",   // Blue
+        stats: "#ec4899",     // Pink
+        autres: "#f94a29",    // Reddish Orange
+      };
+
+      const getServiceColor = (name: string, index: number) => {
+        const lower = name.toLowerCase();
+        if (colors[lower]) return colors[lower];
+        const extraColors = ["#f59e0b", "#06b6d4", "#84cc16", "#14b8a6", "#6366f1", "#f43f5e"];
+        return extraColors[index % extraColors.length];
+      };
+
+      let idx = 0;
+      const serviceItems = Object.entries(parsed)
+        .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
+        .map(([name, val]) => {
+          const value = typeof val === "number" ? val : 0;
+          const color = getServiceColor(name, idx++);
+          return { name, value, color };
+        });
+
+      const autresKey = Object.keys(parsed).find(k => k.toLowerCase() === "autres") || "Autres";
+      const autresVal = parsed[autresKey] || 0;
+
       servicesData = [
-        { name: "Beskarfox", value: parsed.Beskarfox || 0, color: "#10b981" }, // Emerald
-        { name: "Nextcloud", value: parsed.Nextcloud || 0, color: "#a855f7" }, // Purple
-        { name: "Outline", value: parsed.Outline || 0, color: "#3b82f6" },     // Blue
-        { name: "Stats", value: parsed.Stats || 0, color: "#ec4899" },         // Pink
-        { name: "Autres", value: parsed.Autres || 0, color: "#f94a29" },       // Reddish Orange (Autres)
-        { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" } // Semi-transparent white
+        ...serviceItems,
+        { name: "Autres", value: autresVal, color: colors.autres },
+        { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
       ].filter(item => item.value > 0);
     }
   } catch (e) {
@@ -59,22 +83,38 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
   try {
     if (latest.ram_services_json) {
       const parsed = JSON.parse(latest.ram_services_json);
+      const colors: Record<string, string> = {
+        beskarfox: "#10b981", // Emerald
+        nextcloud: "#a855f7", // Purple
+        outline: "#3b82f6",   // Blue
+        stats: "#ec4899",     // Pink
+        autres: "#f94a29",    // Reddish Orange
+      };
 
-      // Convert MB values to GB for chart data
-      const beskarfoxGb = (parsed.Beskarfox || 0) / 1024.0;
-      const nextcloudGb = (parsed.Nextcloud || 0) / 1024.0;
-      const outlineGb = (parsed.Outline || 0) / 1024.0;
-      const statsGb = (parsed.Stats || 0) / 1024.0;
+      const getServiceColor = (name: string, index: number) => {
+        const lower = name.toLowerCase();
+        for (const [known, color] of Object.entries(colors)) {
+          if (lower.includes(known)) return color;
+        }
+        const extraColors = ["#f59e0b", "#06b6d4", "#84cc16", "#14b8a6", "#6366f1", "#f43f5e"];
+        return extraColors[index % extraColors.length];
+      };
 
-      const knownServicesGb = beskarfoxGb + nextcloudGb + outlineGb + statsGb;
+      let idx = 0;
+      const serviceItems = Object.entries(parsed)
+        .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
+        .map(([name, val]) => {
+          const value = (typeof val === "number" ? val : 0) / 1024.0; // convert MB to GB
+          const color = getServiceColor(name, idx++);
+          return { name, value, color };
+        });
+
+      const knownServicesGb = serviceItems.reduce((acc, item) => acc + item.value, 0);
       const autresGb = Math.max(0, ramUsed - knownServicesGb);
 
       ramServicesData = [
-        { name: "Beskarfox", value: beskarfoxGb, color: "#10b981" }, // Emerald
-        { name: "Nextcloud", value: nextcloudGb, color: "#a855f7" }, // Purple
-        { name: "Outline", value: outlineGb, color: "#3b82f6" },     // Blue
-        { name: "Stats", value: statsGb, color: "#ec4899" },         // Pink
-        { name: "Autres", value: autresGb, color: "#f94a29" },       // Reddish Orange (Autres)
+        ...serviceItems,
+        { name: "Autres", value: autresGb, color: colors.autres },
         { name: "Disponible", value: ramFree, color: "rgba(255, 255, 255, 0.1)" }
       ].filter(item => item.value > 0);
     }

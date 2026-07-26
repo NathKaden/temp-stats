@@ -48,76 +48,135 @@ class SystemMetricsCollector:
 
     @staticmethod
     def get_docker_ram_usage() -> str:
-        import subprocess
+        import socket
         import json
+        import os
+        import subprocess
 
-        services = {
-            "beskarfox": ["beskarfox", "beskarfox-web", "beskarfox-app", "beskarfox_app", "beskarfox-client"],
-            "nextcloud": ["nextcloud", "nextcloud-app", "nextcloud_app_1"],
-            "outline": ["outline", "outline-app", "outline_app_1"],
-            "stats": ["stats", "nuc-monitor-server", "nuc-monitor-client", "stats-server", "stats-client"]
-        }
+        ram_usage = {}
 
-        ram_usage = {
-            "Beskarfox": 0.0,
-            "Nextcloud": 0.0,
-            "Outline": 0.0,
-            "Stats": 0.0
-        }
+        def query_docker_socket(path: str):
+            socket_path = "/var/run/docker.sock"
+            if not os.path.exists(socket_path):
+                return None
+            try:
+                s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+                s.settimeout(2.0)
+                s.connect(socket_path)
+                request = f"GET {path} HTTP/1.0\r\nHost: localhost\r\n\r\n"
+                s.sendall(request.encode('utf-8'))
+                
+                response = b""
+                while True:
+                    data = s.recv(4096)
+                    if not data:
+                        break
+                    response += data
+                
+                parts = response.split(b"\r\n\r\n", 1)
+                if len(parts) < 2:
+                    return None
+                return json.loads(parts[1].decode('utf-8'))
+            except Exception:
+                return None
+            finally:
+                try:
+                    s.close()
+                except Exception:
+                    pass
 
-        # 1. Try Docker stats
+        def get_container_mem_usage(container_id: str) -> float:
+            # Try cgroups v2
+            v2_path = f"/sys/fs/cgroup/system.slice/docker-{container_id}.scope/memory.current"
+            if os.path.exists(v2_path):
+                try:
+                    with open(v2_path, "r") as f:
+                        return float(f.read().strip())
+                except Exception:
+                    pass
+            # Try cgroups v1
+            v1_path = f"/sys/fs/cgroup/memory/docker/{container_id}/memory.usage_in_bytes"
+            if os.path.exists(v1_path):
+                try:
+                    with open(v1_path, "r") as f:
+                        return float(f.read().strip())
+                except Exception:
+                    pass
+            # Try alternative cgroups v2 path
+            v2_alt_path = f"/sys/fs/cgroup/docker/{container_id}/memory.current"
+            if os.path.exists(v2_alt_path):
+                try:
+                    with open(v2_alt_path, "r") as f:
+                        return float(f.read().strip())
+                except Exception:
+                    pass
+            return 0.0
+
+        # 1. Try Docker socket query and cgroups reading
+        containers = query_docker_socket("/containers/json")
+        if containers:
+            for container in containers:
+                c_id = container.get("Id", "")
+                names = container.get("Names", [])
+                if not c_id or not names:
+                    continue
+                name = names[0].lstrip('/')
+                mem_bytes = get_container_mem_usage(c_id)
+                mem_mb = mem_bytes / (1024.0 * 1024.0)
+                if mem_mb > 0:
+                    ram_usage[name] = round(mem_mb, 1)
+
+        # 2. Fallback to docker stats CLI if socket returned nothing (e.g. running outside docker, or permissions issues)
+        if not ram_usage:
+            try:
+                result = subprocess.run(
+                    ["docker", "stats", "--no-stream", "--format", "{{.Name}}:{{.MemUsage}}"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
+                    timeout=3
+                )
+                if result.returncode == 0:
+                    for line in result.stdout.strip().split("\n"):
+                        if not line or ":" not in line:
+                            continue
+                        parts = line.split(":", 1)
+                        if len(parts) < 2:
+                            continue
+                        name, mem_part = parts[0], parts[1]
+                        mem_str = mem_part.split("/")[0].strip()
+                        mem_mb = 0.0
+                        try:
+                            num_str = "".join([c for c in mem_str if c.isdigit() or c == "."])
+                            value = float(num_str) if num_str else 0.0
+                            if "gib" in mem_str.lower():
+                                mem_mb = value * 1024.0
+                            elif "mib" in mem_str.lower():
+                                mem_mb = value
+                            elif "kib" in mem_str.lower():
+                                mem_mb = value / 1024.0
+                            elif "b" in mem_str.lower():
+                                mem_mb = value / (1024.0 * 1024.0)
+                            else:
+                                mem_mb = value
+                        except ValueError:
+                            pass
+                        ram_usage[name] = round(mem_mb, 1)
+            except Exception:
+                pass
+
+        # 3. Always ensure our local Stats process is represented
         try:
-            result = subprocess.run(
-                ["docker", "stats", "--no-stream", "--format", "{{.Name}}:{{.MemUsage}}"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                timeout=3
-            )
-
-            if result.returncode == 0:
-                for line in result.stdout.strip().split("\n"):
-                    if not line or ":" not in line:
-                        continue
-                    parts = line.split(":", 1)
-                    if len(parts) < 2:
-                        continue
-                    name, mem_part = parts[0].lower(), parts[1]
-
-                    # Parse memory usage (e.g. "150.5MiB / 7.82GiB" or "1.2GiB / 7.8GiB")
-                    mem_str = mem_part.split("/")[0].strip()
-                    mem_mb = 0.0
-                    try:
-                        num_str = "".join([c for c in mem_str if c.isdigit() or c == "."])
-                        value = float(num_str) if num_str else 0.0
-
-                        if "gib" in mem_str.lower():
-                            mem_mb = value * 1024.0
-                        elif "mib" in mem_str.lower():
-                            mem_mb = value
-                        elif "kib" in mem_str.lower():
-                            mem_mb = value / 1024.0
-                        elif "b" in mem_str.lower():
-                            mem_mb = value / (1024.0 * 1024.0)
-                        else:
-                            mem_mb = value
-                    except ValueError:
-                        pass
-
-                    for service_key, aliases in services.items():
-                        if any(alias in name for alias in aliases):
-                            s_name = service_key.capitalize()
-                            ram_usage[s_name] = round(ram_usage[s_name] + mem_mb, 1)
-                            break
-        except Exception:
-            pass
-
-        # 2. Add local stats process RAM usage (rss) as fallback/addition
-        try:
-            import os
             process = psutil.Process(os.getpid())
             local_stats_mb = process.memory_info().rss / (1024.0 * 1024.0)
-            ram_usage["Stats"] = round(ram_usage["Stats"] + local_stats_mb, 1)
+            stats_key = "nuc-stats-server"
+            # If we don't have nuc-stats-server, try stats or create/add to it
+            if stats_key not in ram_usage:
+                # Find if any key contains 'stats'
+                found_key = next((k for k in ram_usage.keys() if 'stats' in k.lower()), None)
+                if found_key:
+                    stats_key = found_key
+            ram_usage[stats_key] = round(ram_usage.get(stats_key, 0.0) + local_stats_mb, 1)
         except Exception:
             pass
 
@@ -299,23 +358,37 @@ class SystemMetricsCollector:
         if platform.system() == 'Windows':
             stats_path = os.getcwd()
 
-        beskarfox_size = cls.get_dir_size('/opt/beskarfox')
-        nextcloud_size = cls.get_dir_size('/opt/nextcloud')
-        outline_size = cls.get_dir_size('/opt/outline')
-        stats_size = cls.get_dir_size(stats_path)
+        import json
+        services_breakdown = {}
 
-        autres_size = round(disk_usage_gb - (beskarfox_size + nextcloud_size + outline_size + stats_size), 1)
+        # Scan /opt dynamically
+        if os.path.exists('/opt'):
+            try:
+                for entry in os.listdir('/opt'):
+                    full_path = os.path.join('/opt', entry)
+                    if os.path.isdir(full_path):
+                        # Use the exact folder name as the key
+                        size = cls.get_dir_size(full_path)
+                        services_breakdown[entry] = size
+            except Exception:
+                pass
+
+        # Fallbacks for key folders if they weren't found in /opt (e.g. running locally on Windows)
+        for key, path in [("beskarfox", "/opt/beskarfox"), ("nextcloud", "/opt/nextcloud"), ("outline", "/opt/outline")]:
+            if key not in services_breakdown or services_breakdown[key] == 0.0:
+                size = cls.get_dir_size(path)
+                if size > 0:
+                    services_breakdown[key] = size
+
+        if "stats" not in services_breakdown or services_breakdown["stats"] == 0.0:
+            services_breakdown["stats"] = cls.get_dir_size(stats_path)
+
+        # Calculate 'Autres' (Others)
+        known_size = sum(services_breakdown.values())
+        autres_size = round(disk_usage_gb - known_size, 1)
         if autres_size < 0:
             autres_size = 0.0
 
-        import json
-        services_breakdown = {
-            "Beskarfox": beskarfox_size,
-            "Nextcloud": nextcloud_size,
-            "Outline": outline_size,
-            "Stats": stats_size,
-            "Autres":Platform_autre_adjust if 'Platform_autre_adjust' in locals() else autres_size
-        }
         services_breakdown["Autres"] = autres_size
         disk_services_json = json.dumps(services_breakdown)
 
