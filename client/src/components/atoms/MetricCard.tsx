@@ -10,6 +10,7 @@ interface MetricCardProps {
   description?: string;
   color?: "blue" | "red" | "orange" | "yellow" | "yellow-muted" | "indigo";
   variant?: "progress" | "circle";
+  className?: string;
 }
 
 export const MetricCard = ({
@@ -20,7 +21,8 @@ export const MetricCard = ({
   icon,
   description,
   color = "indigo",
-  variant = "progress"
+  variant = "progress",
+  className
 }: MetricCardProps) => {
   const numericValue = Number(value);
   const isPercent = unit === "%";
@@ -87,7 +89,7 @@ export const MetricCard = ({
 
   if (variant === "circle") {
     return (
-      <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group p-5 flex flex-col justify-center h-full`}>
+      <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group p-5 flex flex-col justify-center h-full ${className || ""}`}>
         <div className="flex flex-row items-center justify-between gap-4 z-10 relative w-full">
           {/* Left info block */}
           <div className="flex flex-col gap-3">
@@ -145,7 +147,7 @@ export const MetricCard = ({
   }
 
   return (
-    <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group`}>
+    <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group ${className || ""}`}>
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2 z-10">
         {icon && (
           <div className={`${currentColors.iconColor} transition-all duration-300 shrink-0`}>

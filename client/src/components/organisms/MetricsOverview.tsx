@@ -159,18 +159,17 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         <div className="grid gap-4 grid-cols-1 md:grid-cols-5">
 
           {/* CPU Card */}
-          <div className="md:col-span-2 flex">
-            <MetricCard
-              title="CPU"
-              subTitle={latest.cpu_name || "Processeur"}
-              value={latest.cpu_usage}
-              unit="%"
-              icon={<Cpu className="h-6 w-6" />}
-              description={`Température : ${latest.cpu_temp}°C`}
-              color="blue"
-              variant="circle"
-            />
-          </div>
+          <MetricCard
+            title="CPU"
+            subTitle={latest.cpu_name || "Processeur"}
+            value={latest.cpu_usage}
+            unit="%"
+            icon={<Cpu className="h-6 w-6" />}
+            description={`Température : ${latest.cpu_temp}°C`}
+            color="blue"
+            variant="circle"
+            className="md:col-span-2"
+          />
 
           {/* RAM Service breakdown Donut Card */}
           <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(255,44,76,0.18)] group p-5 md:col-span-3">

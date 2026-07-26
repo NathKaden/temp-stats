@@ -29,6 +29,7 @@ export const DashboardTemplate = ({
   historyToolbar
 }: DashboardTemplateProps) => {
   const [timeString, setTimeString] = useState("");
+  const gitVersion = process.env.NEXT_PUBLIC_GIT_COMMIT || "unknown";
 
   useEffect(() => {
     const updateTime = () => {
@@ -114,7 +115,7 @@ export const DashboardTemplate = ({
 
           {/* Footer in Sidebar (Desktop) */}
           <div className={`${refreshButton ? "" : "mt-auto"} border-t border-border/30 bg-background/10 py-4 px-6 text-center text-[10px] text-muted-foreground/45 tracking-wider font-mono`}>
-            ver. cd996dd
+            ver. {gitVersion}
           </div>
         </div>
       </aside>
@@ -127,7 +128,7 @@ export const DashboardTemplate = ({
             {title}
             <div className="flex items-center gap-2">
               <span className="font-mono text-[10px] text-muted-foreground/45 tracking-wider pr-1">
-                ver. cd996dd
+                ver. {gitVersion}
               </span>
               {refreshButton && (
                 <div className="scale-90 transform origin-right">
