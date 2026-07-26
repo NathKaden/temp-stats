@@ -236,11 +236,17 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
     );
   };
 
-  // Group services so Stats is in Col 1 (directly below Beskarfox) and Outline is in Col 2 (below Nextcloud)
-  const col1 = [servicesList[0], servicesList[2]]; // Beskarfox, Stats
-  const col2 = [servicesList[1], servicesList[3]]; // Nextcloud, Outline
+  // Combine all services and sort them by RAM usage (descending), then by Disk space (descending)
+  const allServices = [...servicesList, ...dynamicServices];
+  allServices.sort((a, b) => {
+    const ramDiff = (b.ram || 0) - (a.ram || 0);
+    if (ramDiff !== 0) return ramDiff;
+    return (b.disk || 0) - (a.disk || 0);
+  });
 
-  dynamicServices.forEach((service, index) => {
+  const col1: any[] = [];
+  const col2: any[] = [];
+  allServices.forEach((service, index) => {
     if (index % 2 === 0) {
       col1.push(service);
     } else {
