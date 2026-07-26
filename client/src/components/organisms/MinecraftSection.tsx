@@ -103,7 +103,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   });
 
   return (
-    <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
+    <div className="grid gap-6 grid-cols-1 xl:grid-cols-3 pb-16">
       {/* LEFT COLUMN: Status and Players list */}
       <div className="xl:col-span-1 flex flex-col gap-6">
         
@@ -237,13 +237,25 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
       <div className="xl:col-span-2 flex">
         <Card className="flex-grow glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl flex flex-col overflow-hidden min-h-[500px]">
           {/* Console Header */}
-          <div className="px-5 py-4 border-b border-white/5 bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
+          <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/40 flex items-center justify-between gap-4 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <Terminal className="h-4 w-4 text-violet-400" />
               <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
             </div>
 
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            {/* Keyword Search */}
+            <div className="relative max-w-[140px] sm:max-w-xs flex-grow mx-2">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/45 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-white/5 bg-black/20 text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-violet-500/30 transition-all font-mono"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
               {/* Play/Pause refresh stream */}
               <button
                 onClick={() => setIsPaused(!isPaused)}
@@ -257,20 +269,6 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 {isPaused ? <Play className="h-3 w-3" /> : <Pause className="h-3 w-3" />}
                 <span>{isPaused ? "Gelé" : "Actif"}</span>
               </button>
-            </div>
-          </div>
-
-          {/* Search Toolbar */}
-          <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/20 flex items-center justify-between gap-3 shrink-0">
-            <div className="relative flex-grow">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/45 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Rechercher dans les logs..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1 text-xs rounded-lg border border-white/5 bg-black/20 text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-violet-500/30 transition-all font-mono"
-              />
             </div>
           </div>
 
