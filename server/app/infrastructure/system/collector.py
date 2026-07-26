@@ -47,73 +47,78 @@ class SystemMetricsCollector:
         return platform.processor() or "Intel Core Processor"
 
     @staticmethod
-    def get_docker_ram_usage() -> str:
+    def query_docker_socket(path: str):
         import socket
+        import json
+        import os
+        socket_path = "/var/run/docker.sock"
+        if not os.path.exists(socket_path):
+            return None
+        try:
+            s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            s.settimeout(2.0)
+            s.connect(socket_path)
+            request = f"GET {path} HTTP/1.0\r\nHost: localhost\r\n\r\n"
+            s.sendall(request.encode('utf-8'))
+            
+            response = b""
+            while True:
+                data = s.recv(4096)
+                if not data:
+                    break
+                response += data
+            
+            parts = response.split(b"\r\n\r\n", 1)
+            if len(parts) < 2:
+                return None
+            return json.loads(parts[1].decode('utf-8'))
+        except Exception:
+            return None
+        finally:
+            try:
+                s.close()
+            except Exception:
+                pass
+
+    @staticmethod
+    def get_container_mem_usage(container_id: str) -> float:
+        import os
+        # Try cgroups v2
+        v2_path = f"/sys/fs/cgroup/system.slice/docker-{container_id}.scope/memory.current"
+        if os.path.exists(v2_path):
+            try:
+                with open(v2_path, "r") as f:
+                    return float(f.read().strip())
+            except Exception:
+                pass
+        # Try cgroups v1
+        v1_path = f"/sys/fs/cgroup/memory/docker/{container_id}/memory.usage_in_bytes"
+        if os.path.exists(v1_path):
+            try:
+                with open(v1_path, "r") as f:
+                    return float(f.read().strip())
+            except Exception:
+                pass
+        # Try alternative cgroups v2 path
+        v2_alt_path = f"/sys/fs/cgroup/docker/{container_id}/memory.current"
+        if os.path.exists(v2_alt_path):
+            try:
+                with open(v2_alt_path, "r") as f:
+                    return float(f.read().strip())
+            except Exception:
+                pass
+        return 0.0
+
+    @staticmethod
+    def get_docker_ram_usage() -> str:
         import json
         import os
         import subprocess
 
         ram_usage = {}
 
-        def query_docker_socket(path: str):
-            socket_path = "/var/run/docker.sock"
-            if not os.path.exists(socket_path):
-                return None
-            try:
-                s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-                s.settimeout(2.0)
-                s.connect(socket_path)
-                request = f"GET {path} HTTP/1.0\r\nHost: localhost\r\n\r\n"
-                s.sendall(request.encode('utf-8'))
-                
-                response = b""
-                while True:
-                    data = s.recv(4096)
-                    if not data:
-                        break
-                    response += data
-                
-                parts = response.split(b"\r\n\r\n", 1)
-                if len(parts) < 2:
-                    return None
-                return json.loads(parts[1].decode('utf-8'))
-            except Exception:
-                return None
-            finally:
-                try:
-                    s.close()
-                except Exception:
-                    pass
-
-        def get_container_mem_usage(container_id: str) -> float:
-            # Try cgroups v2
-            v2_path = f"/sys/fs/cgroup/system.slice/docker-{container_id}.scope/memory.current"
-            if os.path.exists(v2_path):
-                try:
-                    with open(v2_path, "r") as f:
-                        return float(f.read().strip())
-                except Exception:
-                    pass
-            # Try cgroups v1
-            v1_path = f"/sys/fs/cgroup/memory/docker/{container_id}/memory.usage_in_bytes"
-            if os.path.exists(v1_path):
-                try:
-                    with open(v1_path, "r") as f:
-                        return float(f.read().strip())
-                except Exception:
-                    pass
-            # Try alternative cgroups v2 path
-            v2_alt_path = f"/sys/fs/cgroup/docker/{container_id}/memory.current"
-            if os.path.exists(v2_alt_path):
-                try:
-                    with open(v2_alt_path, "r") as f:
-                        return float(f.read().strip())
-                except Exception:
-                    pass
-            return 0.0
-
         # 1. Try Docker socket query and cgroups reading
-        containers = query_docker_socket("/containers/json")
+        containers = SystemMetricsCollector.query_docker_socket("/containers/json")
         if containers:
             for container in containers:
                 c_id = container.get("Id", "")
@@ -121,7 +126,7 @@ class SystemMetricsCollector:
                 if not c_id or not names:
                     continue
                 name = names[0].lstrip('/')
-                mem_bytes = get_container_mem_usage(c_id)
+                mem_bytes = SystemMetricsCollector.get_container_mem_usage(c_id)
                 mem_mb = mem_bytes / (1024.0 * 1024.0)
                 if mem_mb > 0:
                     ram_usage[name] = round(mem_mb, 1)
@@ -382,6 +387,46 @@ class SystemMetricsCollector:
 
         if "stats" not in services_breakdown or services_breakdown["stats"] == 0.0:
             services_breakdown["stats"] = cls.get_dir_size(stats_path)
+
+        # Query Docker system df to associate volume sizes and count docker images
+        system_df = SystemMetricsCollector.query_docker_socket("/system/df")
+        if system_df:
+            try:
+                # Docker volumes sizes
+                volumes = system_df.get("Volumes", [])
+                if volumes:
+                    for vol in volumes:
+                        name = vol.get("Name", "")
+                        usage = vol.get("UsageData", {})
+                        if usage:
+                            size_bytes = usage.get("Size", 0)
+                            size_gb = size_bytes / (1024 ** 3)
+                            if size_gb > 0.05:  # more than 50MB
+                                # Try to match to an existing service in services_breakdown (case-insensitive)
+                                matched = False
+                                for key in list(services_breakdown.keys()):
+                                    if key.lower() in name.lower() or name.lower() in key.lower():
+                                        services_breakdown[key] = round(services_breakdown.get(key, 0.0) + size_gb, 1)
+                                        matched = True
+                                        break
+                                
+                                # If no match, try to group under a base name derived from the volume name
+                                if not matched:
+                                    # E.g. beskarfox_db-data -> beskarfox
+                                    parts = name.replace('_', '-').split('-')
+                                    if parts:
+                                        proj = parts[0]
+                                        services_breakdown[proj] = round(services_breakdown.get(proj, 0.0) + size_gb, 1)
+
+                # Docker images size
+                images = system_df.get("Images", [])
+                if images:
+                    total_images_bytes = sum(img.get("Size", 0) for img in images)
+                    docker_images_gb = round(total_images_bytes / (1024 ** 3), 1)
+                    if docker_images_gb > 0:
+                        services_breakdown["Docker Images"] = docker_images_gb
+            except Exception:
+                pass
 
         # Calculate 'Autres' (Others)
         known_size = sum(services_breakdown.values())
