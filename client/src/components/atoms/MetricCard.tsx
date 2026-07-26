@@ -87,8 +87,8 @@ export const MetricCard = ({
 
   if (variant === "circle") {
     return (
-      <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group p-5`}>
-        <div className="flex flex-row items-center justify-between gap-4 z-10 relative">
+      <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group p-5 flex flex-col justify-center h-full`}>
+        <div className="flex flex-row items-center justify-between gap-4 z-10 relative w-full">
           {/* Left info block */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
@@ -111,8 +111,8 @@ export const MetricCard = ({
           </div>
 
           {/* Right SVG Circle block */}
-          <div className="relative flex items-center justify-center h-24 w-24 shrink-0">
-            <svg className="w-full h-full transform -rotate-90">
+          <div className="relative flex items-center justify-center h-24 w-24 shrink-0 self-center my-auto">
+            <svg className="transform -rotate-90" width={96} height={96} viewBox="0 0 96 96">
               <circle
                 cx="48"
                 cy="48"
@@ -134,7 +134,7 @@ export const MetricCard = ({
                 fill="transparent"
               />
             </svg>
-            <div className="absolute flex flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-lg font-extrabold tracking-tight text-foreground">{value}</span>
               {unit && <span className="text-xs font-bold text-muted-foreground/50">{unit}</span>}
             </div>

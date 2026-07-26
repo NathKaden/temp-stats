@@ -217,15 +217,15 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               </div>
 
               {/* Right Donut Chart */}
-              <div className="relative h-28 w-28 shrink-0 flex items-center justify-center">
+              <div className="relative h-32 w-32 shrink-0 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={ramServicesData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={36}
-                      outerRadius={44}
+                      innerRadius={42}
+                      outerRadius={50}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -238,12 +238,11 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="flex items-baseline text-foreground">
-                    <span className="text-xl font-extrabold tracking-tight">{ramPercent}</span>
-                    <span className="text-sm font-bold text-muted-foreground/60 ml-0.5">%</span>
+                    <span className="text-2xl font-semibold tracking-tight">{ramPercent}</span>
+                    <span className="text-sm font-semibold text-muted-foreground/60 ml-0.5">%</span>
                   </div>
-                  <span className="text-xs font-bold text-muted-foreground/50">Utilisé</span>
                 </div>
               </div>
             </div>
@@ -312,15 +311,15 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
               </div>
 
               {/* Right Donut Chart */}
-              <div className="relative h-28 w-28 shrink-0 flex items-center justify-center">
+              <div className="relative h-32 w-32 shrink-0 flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={servicesData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={36}
-                      outerRadius={44}
+                      innerRadius={42}
+                      outerRadius={50}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -333,12 +332,11 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="absolute flex flex-col items-center justify-center">
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="flex items-baseline text-foreground">
-                    <span className="text-xl font-extrabold tracking-tight">{nvmePercent}</span>
-                    <span className="text-sm font-bold text-muted-foreground/60 ml-0.5">%</span>
+                    <span className="text-2xl font-semibold tracking-tight">{nvmePercent}</span>
+                    <span className="text-sm font-semibold text-muted-foreground/60 ml-0.5">%</span>
                   </div>
-                  <span className="text-xs font-bold text-muted-foreground/50">Utilisé</span>
                 </div>
               </div>
             </div>
