@@ -227,9 +227,12 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
         <Card className="flex-grow glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl flex flex-col overflow-hidden min-h-[500px] gap-0 py-0">
           {/* Console Header */}
           <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/40 flex items-center justify-between gap-4 shrink-0">
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2.5 shrink-0">
               <Terminal className="h-4 w-4 text-violet-400" />
               <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
+              <span className="text-[10px] text-muted-foreground/50 font-mono bg-black/30 border border-white/5 px-2 py-0.5 rounded-md">
+                {filteredLogs.length !== pausedLogs.length ? `${filteredLogs.length}/` : ""}{pausedLogs.length}
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -273,16 +276,6 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 <span className="text-xs font-medium">Aucune ligne de log correspondante</span>
               </div>
             )}
-          </div>
-
-          {/* Console Footer */}
-          <div className="px-5 py-2.5 border-t border-white/5 bg-zinc-950/40 flex items-center justify-between shrink-0 text-[10px] text-muted-foreground/40 font-mono">
-            <div className="flex items-center gap-4">
-              <span>Total: {pausedLogs.length} lignes</span>
-              {filteredLogs.length !== pausedLogs.length && (
-                <span className="text-violet-400/80">Filtré: {filteredLogs.length} lignes</span>
-              )}
-            </div>
           </div>
         </Card>
       </div>
