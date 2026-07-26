@@ -56,11 +56,11 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   }
 
   // Parse log line for syntax highlighting
-  const formatLogLine = (line: string) => {
+  const formatLogLine = (line: string, index: number) => {
     // Standard format: [HH:MM:SS] [thread/LEVEL]: Message
     const match = line.match(/^\[(\d{2}:\d{2}:\d{2})\]\s+\[([^\]]+)\]:\s+(.*)$/);
     if (!match) {
-      return <span className="text-zinc-500">{line}</span>;
+      return <div key={index} className="text-zinc-500 font-mono text-xs py-[1px] px-1">{line}</div>;
     }
 
     const [, time, threadAndLevel, message] = match;
@@ -71,7 +71,6 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
 
     // Highlight types of messages
     let messageColor = "text-zinc-300";
-    let icon = null;
 
     if (message.startsWith("<") && message.includes(">")) {
       // Chat message
@@ -87,12 +86,12 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
     if (level === "ERROR" || level === "FATAL") levelBadgeColor = "text-red-400 font-bold";
 
     return (
-      <div className="leading-relaxed hover:bg-white/5 py-0.5 px-1 rounded transition-colors duration-100 flex items-start gap-2">
+      <div key={index} className="leading-normal hover:bg-white/5 py-[1px] px-1 rounded transition-colors duration-100 flex items-start gap-2">
         <span className="text-zinc-500 select-none shrink-0 font-mono text-xs">[{time}]</span>
         <span className={`${levelBadgeColor} select-none shrink-0 font-mono text-xs`}>
           [{threadAndLevel}]
         </span>
-        <span className={`${messageColor} font-mono text-xs break-all`}>{message}</span>
+        <span className={`${messageColor} font-mono text-xs break-words`}>{message}</span>
       </div>
     );
   };
@@ -125,8 +124,8 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 <Gamepad2 className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-foreground/90 leading-tight">Serveur de jeu</h3>
-                <span className="text-xs text-muted-foreground/60">Minecraft (Paper)</span>
+                <h3 className="font-bold text-lg text-foreground/90 leading-tight">Minecraft</h3>
+                <span className="text-xs text-muted-foreground/60">Paper</span>
               </div>
             </div>
             
@@ -235,7 +234,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
 
       {/* RIGHT COLUMN: Interactive Console/Logs */}
       <div className="xl:col-span-2 flex">
-        <Card className="flex-grow glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl flex flex-col overflow-hidden min-h-[500px]">
+        <Card className="flex-grow glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl flex flex-col overflow-hidden min-h-[500px] gap-0 py-0">
           {/* Console Header */}
           <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/40 flex items-center justify-between gap-4 shrink-0">
             <div className="flex items-center gap-2 shrink-0">
@@ -243,23 +242,23 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
             </div>
 
-            {/* Keyword Search */}
-            <div className="relative max-w-[140px] sm:max-w-xs flex-grow mx-2">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/45 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-white/5 bg-black/20 text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-violet-500/30 transition-all font-mono"
-              />
-            </div>
+            <div className="flex items-center gap-3">
+              {/* Keyword Search */}
+              <div className="relative w-32 sm:w-48">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/45 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-7 pr-2.5 py-1 text-xs rounded-lg border border-white/5 bg-black/20 text-foreground placeholder-muted-foreground/40 focus:outline-none focus:border-violet-500/30 transition-all font-mono"
+                />
+              </div>
 
-            <div className="flex items-center gap-2 shrink-0">
               {/* Play/Pause refresh stream */}
               <button
                 onClick={() => setIsPaused(!isPaused)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
                   isPaused
                     ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
                     : "bg-zinc-900/60 text-muted-foreground border-white/5 hover:text-foreground hover:bg-zinc-900"
@@ -273,12 +272,10 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           </div>
 
           {/* Console Text Container */}
-          <div className="flex-grow p-4 bg-black/45 overflow-y-auto font-mono custom-scrollbar max-h-[500px]">
+          <div className="flex-grow p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar max-h-[500px]">
             {filteredLogs.length > 0 ? (
               <div className="space-y-0.5">
-                {filteredLogs.map((line, index) => (
-                  <div key={index}>{formatLogLine(line)}</div>
-                ))}
+                {filteredLogs.map((line, index) => formatLogLine(line, index))}
                 <div ref={consoleEndRef} />
               </div>
             ) : (
