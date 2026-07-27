@@ -189,14 +189,14 @@ export const DashboardTemplate = ({
             )}
 
             {activeTab === "minecraft" && minecraft && (
-              <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Minecraft</h2>
                 {minecraft}
               </section>
             )}
 
             {activeTab === "backups" && backups && (
-              <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Sauvegardes</h2>
                 {backups}
               </section>
