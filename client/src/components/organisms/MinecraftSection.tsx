@@ -24,6 +24,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   const [isPaused, setIsPaused] = useState(false);
   const consoleEndRef = useRef<HTMLDivElement>(null);
   const [pausedLogs, setPausedLogs] = useState<string[]>([]);
+  const prevLogsSerializedRef = useRef<string>("");
 
   // Capture logs when not paused
   useEffect(() => {
@@ -32,10 +33,14 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
     }
   }, [status, isPaused]);
 
-  // Handle auto-scroll to bottom of logs console
+  // Handle auto-scroll to bottom of logs console (only if logs content actually changed)
   useEffect(() => {
-    if (consoleEndRef.current) {
-      consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const serialized = pausedLogs.join("\n");
+    if (serialized !== prevLogsSerializedRef.current) {
+      if (consoleEndRef.current) {
+        consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+      prevLogsSerializedRef.current = serialized;
     }
   }, [pausedLogs]);
 
