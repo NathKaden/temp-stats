@@ -91,12 +91,16 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
     if (level === "ERROR" || level === "FATAL") levelBadgeColor = "text-red-400 font-bold";
 
     return (
-      <div key={index} className="leading-normal hover:bg-white/5 py-[1px] px-1 rounded transition-colors duration-100 flex items-start gap-2">
-        <span className="text-zinc-500 select-none shrink-0 font-mono text-xs">[{time}]</span>
-        <span className={`${levelBadgeColor} select-none shrink-0 font-mono text-xs`}>
-          [{threadAndLevel}]
+      <div key={index} className="leading-normal hover:bg-white/5 py-[1px] px-1 rounded transition-colors duration-100 flex flex-col sm:flex-row sm:items-start gap-0.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 shrink-0 select-none">
+          <span className="text-zinc-500 font-mono text-[10px] sm:text-xs">[{time}]</span>
+          <span className={`${levelBadgeColor} font-mono text-[10px] sm:text-xs`}>
+            [{threadAndLevel}]
+          </span>
+        </div>
+        <span className={`${messageColor} font-mono text-xs break-all sm:break-words flex-1 pl-1 sm:pl-0`}>
+          {message}
         </span>
-        <span className={`${messageColor} font-mono text-xs break-words`}>{message}</span>
       </div>
     );
   };
@@ -105,6 +109,20 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   const filteredLogs = pausedLogs.filter((line) => {
     return line.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  const playPauseButton = (
+    <button
+      onClick={() => setIsPaused(!isPaused)}
+      className={`p-2 rounded-lg border transition-all cursor-pointer ${
+        isPaused
+          ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
+          : "bg-zinc-900/60 text-muted-foreground border-white/5 hover:text-foreground hover:bg-zinc-900"
+      }`}
+      title={isPaused ? "Reprendre le flux en direct" : "Geler le flux des logs"}
+    >
+      {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+    </button>
+  );
 
   return (
     <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
@@ -230,18 +248,27 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
       <div className="xl:col-span-2 flex">
         <Card className="flex-grow glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl flex flex-col overflow-hidden gap-0 py-0">
           {/* Console Header */}
-          <div className="px-5 py-3 border-b border-white/5 bg-zinc-950/40 flex items-center justify-between gap-4 shrink-0">
-            <div className="flex items-center gap-2.5 shrink-0">
-              <Terminal className="h-4 w-4 text-violet-400" />
-              <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
-              <span className="text-[10px] text-muted-foreground/50 font-mono bg-black/30 border border-white/5 px-2 py-0.5 rounded-md">
-                {filteredLogs.length !== pausedLogs.length ? `${filteredLogs.length}/` : ""}{pausedLogs.length} lignes
-              </span>
+          <div className="px-4 py-3 sm:px-5 border-b border-white/5 bg-zinc-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0">
+            {/* Left Title and Badge + Play/Pause in a row on mobile */}
+            <div className="flex items-center justify-between w-full sm:w-auto">
+              <div className="flex items-center gap-2.5 shrink-0">
+                <Terminal className="h-4 w-4 text-violet-400" />
+                <h3 className="font-bold text-sm tracking-wide text-foreground/80">Console</h3>
+                <span className="text-[10px] text-muted-foreground/50 font-mono bg-black/30 border border-white/5 px-2 py-0.5 rounded-md">
+                  {filteredLogs.length !== pausedLogs.length ? `${filteredLogs.length}/` : ""}{pausedLogs.length} lignes
+                </span>
+              </div>
+              
+              {/* Play/Pause Button on mobile */}
+              <div className="sm:hidden shrink-0">
+                {playPauseButton}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Right side search + play/pause (play/pause only on desktop) */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               {/* Keyword Search */}
-              <div className="relative w-32 sm:w-48">
+              <div className="relative w-full sm:w-48">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground/45 pointer-events-none" />
                 <input
                   type="text"
@@ -252,23 +279,15 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 />
               </div>
 
-              {/* Play/Pause refresh stream */}
-              <button
-                onClick={() => setIsPaused(!isPaused)}
-                className={`p-2 rounded-lg border transition-all cursor-pointer ${
-                  isPaused
-                    ? "bg-amber-500/10 text-amber-300 border-amber-500/20"
-                    : "bg-zinc-900/60 text-muted-foreground border-white/5 hover:text-foreground hover:bg-zinc-900"
-                }`}
-                title={isPaused ? "Reprendre le flux en direct" : "Geler le flux des logs"}
-              >
-                {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-              </button>
+              {/* Play/Pause Button on desktop */}
+              <div className="hidden sm:block shrink-0">
+                {playPauseButton}
+              </div>
             </div>
           </div>
 
           {/* Console Text Container */}
-          <div className="flex-grow p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar h-0 min-h-[400px]">
+          <div className="flex-grow p-3 sm:p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar h-0 min-h-[400px]">
             {filteredLogs.length > 0 ? (
               <div className="space-y-0.5">
                 {filteredLogs.map((line, index) => formatLogLine(line, index))}
