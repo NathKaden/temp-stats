@@ -54,6 +54,8 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
           }
         });
 
+      serviceItems.sort((a, b) => b.value - a.value);
+
       const autresKey = Object.keys(parsed).find(k => k.toLowerCase() === "autres") || "Autres";
       const autresVal = (parsed[autresKey] || 0) + extraAutresGb;
 
@@ -124,6 +126,8 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
             serviceItems.push({ name, value, color });
           }
         });
+
+      serviceItems.sort((a, b) => b.value - a.value);
 
       const knownServicesGb = serviceItems.reduce((acc, item) => acc + item.value, 0) + extraAutresGb;
       const autresGb = Math.max(0, ramUsed - knownServicesGb) + extraAutresGb;
