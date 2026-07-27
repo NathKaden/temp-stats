@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { SystemMetric, MinecraftStatus } from '@/types';
+import { SystemMetric, MinecraftStatus, BackupsStatusResponse, BackupLogResponse } from '@/types';
 
 let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -39,6 +39,25 @@ export const metricsService = {
   },
   getMinecraftStatus: async (): Promise<MinecraftStatus> => {
     const response = await api.get<MinecraftStatus>('/api/minecraft');
+    return response.data;
+  },
+};
+
+export const backupsService = {
+  getStatus: async (): Promise<BackupsStatusResponse> => {
+    const response = await api.get<BackupsStatusResponse>('/api/backups');
+    return response.data;
+  },
+  getHistory: async (): Promise<BackupLogResponse[]> => {
+    const response = await api.get<BackupLogResponse[]>('/api/backups/history');
+    return response.data;
+  },
+  runBackup: async (service: string, apiKey: string): Promise<{ status: string; message: string }> => {
+    const response = await api.post<{ status: string; message: string }>(
+      '/api/backups/run',
+      { service },
+      { headers: { 'X-API-Key': apiKey } }
+    );
     return response.data;
   },
 };

@@ -31,4 +31,30 @@ export interface MinecraftStatus {
   motd: string | null;
   logs: string[];
 }
+export interface BackupItem {
+  folder: string;
+  date: string;
+  size_bytes: number;
+  files: string[];
+}
 
+export interface BackupServiceStatus {
+  latest_backup: BackupItem | null;
+  total_backups_count: number;
+}
+
+export interface BackupsStatusResponse {
+  minecraft: BackupServiceStatus;
+  outline: BackupServiceStatus;
+  nextcloud: BackupServiceStatus;
+}
+
+export interface BackupLogResponse {
+  id: number;
+  service: string;
+  timestamp: string;
+  status: string;
+  size_bytes: number;
+  files: string[];
+  error_message: string | null;
+}

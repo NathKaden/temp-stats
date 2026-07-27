@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
@@ -8,6 +8,7 @@ from app.use_cases.metrics import MetricsUseCases
 from app.domain.models import SystemMetricDomain
 from app.core.config import settings
 from app.infrastructure.system.minecraft_pinger import MinecraftPinger
+from app.infrastructure.system.backup_manager import BackupManager
 
 router = APIRouter()
 
@@ -94,4 +95,27 @@ def read_minecraft_status():
     logs = pinger.get_logs(max_lines=100)
     status["logs"] = logs
     return status
+
+@router.get("/backups", response_model=schemas.BackupsStatusResponse)
+def read_backups_status(db: Session = Depends(get_db)):
+    manager = BackupManager(db)
+    return manager.get_latest_backups_status()
+
+@router.get("/backups/history", response_model=List[schemas.BackupLogResponse])
+def read_backups_history(db: Session = Depends(get_db)):
+    manager = BackupManager(db)
+    return manager.get_backup_history()
+
+@router.post("/backups/run")
+def trigger_backup(request: schemas.BackupTriggerRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):
+    manager = BackupManager(db)
+    if request.service == "all":
+        for s in ["minecraft", "outline", "nextcloud"]:
+            background_tasks.add_task(manager.run_backup, s)
+        return {"status": "success", "message": "Backups queued for all services"}
+    else:
+        if request.service not in ["minecraft", "outline", "nextcloud"]:
+            raise HTTPException(status_code=400, detail=f"Invalid service name: {request.service}")
+        background_tasks.add_task(manager.run_backup, request.service)
+        return {"status": "success", "message": f"Backup queued for {request.service}"}
 

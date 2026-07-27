@@ -45,3 +45,23 @@ class SystemMetricDomain:
         self.disk_services_json = disk_services_json
         self.cpu_name = cpu_name
         self.ram_services_json = ram_services_json
+
+
+class BackupLogDomain:
+    def __init__(
+        self,
+        id: Optional[int] = None,
+        service: str = "",
+        timestamp: Optional[datetime] = None,
+        status: str = "running",
+        size_bytes: int = 0,
+        files_json: Optional[str] = None,
+        error_message: Optional[str] = None
+    ):
+        self.id = id
+        self.service = service
+        self.timestamp = timestamp or datetime.utcnow()
+        self.status = status
+        self.size_bytes = size_bytes
+        self.files_json = files_json
+        self.error_message = error_message

@@ -42,3 +42,31 @@ class MinecraftStatus(BaseModel):
     motd: Optional[str] = None
     logs: List[str] = []
 
+
+class BackupItem(BaseModel):
+    folder: str
+    date: str
+    size_bytes: int
+    files: List[str]
+
+class BackupServiceStatus(BaseModel):
+    latest_backup: Optional[BackupItem] = None
+    total_backups_count: int
+
+class BackupsStatusResponse(BaseModel):
+    minecraft: BackupServiceStatus
+    outline: BackupServiceStatus
+    nextcloud: BackupServiceStatus
+
+class BackupLogResponse(BaseModel):
+    id: int
+    service: str
+    timestamp: str
+    status: str
+    size_bytes: int
+    files: List[str]
+    error_message: Optional[str] = None
+
+class BackupTriggerRequest(BaseModel):
+    service: str
+
