@@ -24,9 +24,9 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       const parsed = JSON.parse(latest.disk_services_json);
       const colors: Record<string, string> = {
         beskarfox: "#10b981", // Emerald
-        nextcloud: "#a855f7", // Purple
-        outline: "#3b82f6",   // Blue
-        stats: "#ec4899",     // Pink
+        nextcloud: "#3b82f6", // Blue
+        stats: "#a855f7",     // Purple
+        outline: "#6366f1",   // Indigo
         autres: "#f94a29",    // Reddish Orange
       };
 
@@ -74,7 +74,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
     const autresVal = Math.max(0, parseFloat((nvmeUsed - statsVal).toFixed(1)));
 
     servicesData = [
-      { name: "Stats", value: statsVal, color: "#ec4899" },
+      { name: "Stats", value: statsVal, color: "#a855f7" },
       { name: "Autres", value: autresVal, color: "#f94a29" },
       { name: "Disponible", value: nvmeFree, color: "rgba(255, 255, 255, 0.1)" }
     ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
@@ -93,9 +93,9 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
       const parsed = JSON.parse(latest.ram_services_json);
       const colors: Record<string, string> = {
         beskarfox: "#10b981", // Emerald
-        nextcloud: "#a855f7", // Purple
-        outline: "#3b82f6",   // Blue
-        stats: "#ec4899",     // Pink
+        nextcloud: "#3b82f6", // Blue
+        stats: "#a855f7",     // Purple
+        outline: "#6366f1",   // Indigo
         autres: "#f94a29",    // Reddish Orange
       };
 
@@ -145,7 +145,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
     const autresValGb = Math.max(0, ramUsed - statsValGb);
 
     ramServicesData = [
-      { name: "Stats", value: statsValGb, color: "#ec4899" },
+      { name: "Stats", value: statsValGb, color: "#a855f7" },
       { name: "Autres", value: autresValGb, color: "#f94a29" },
       { name: "Disponible", value: ramFree, color: "rgba(255, 255, 255, 0.1)" }
     ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
@@ -172,7 +172,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
           />
 
           {/* RAM Service breakdown Donut Card */}
-          <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(255,44,76,0.18)] group p-5 md:col-span-3">
+          <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(255,44,76,0.18)] group p-5 md:col-span-3">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 z-10 relative">
               {/* Left Details & Legend */}
               <div className="flex-1 flex flex-col gap-4 w-full">
@@ -200,7 +200,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                       ))}
                   </div>
                   {/* System Legend at the end */}
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2 border-t border-white/5">
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                       {ramServicesData.filter(item => item.name === "Autres" || item.name === "Disponible").map((item, idx) => (
                           <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                               <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
@@ -258,7 +258,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
         <div className="flex flex-col gap-4">
 
           {/* NVMe SSD Service breakdown Donut Card */}
-          <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(249,74,41,0.12)] group p-5">
+          <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(249,74,41,0.12)] group p-5">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 z-10 relative">
               {/* Left Details & Legend */}
               <div className="flex-1 flex flex-col gap-4 w-full">
@@ -294,7 +294,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                   ))}
                 </div>
                 {/* System Legend at the end */}
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 pt-2 border-t border-white/5">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                   {servicesData.filter(item => item.name === "Autres" || item.name === "Disponible").map((item, idx) => (
                     <div key={idx} className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                       <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
