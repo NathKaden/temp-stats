@@ -232,7 +232,6 @@ export default function Home() {
         <BackupSection
           status={backupsStatus}
           loading={backupsLoading}
-          onRefresh={() => fetchBackupsData(true)}
         />
       }
       activeTab={activeTab}

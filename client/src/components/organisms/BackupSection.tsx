@@ -1,39 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { 
   Sword, Cloud, BookOpen, Database, Calendar, HardDrive, 
-  RefreshCw, CheckCircle2, XCircle, AlertCircle, Key, FileArchive, Loader2 
+  RefreshCw, CheckCircle2, XCircle, AlertCircle, FileArchive, Loader2 
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { backupsService } from "@/services/api";
 import { BackupsStatusResponse, BackupLogResponse } from "@/types";
 
 interface BackupSectionProps {
   status: BackupsStatusResponse | null;
   loading: boolean;
-  onRefresh: () => void;
 }
 
-export const BackupSection = ({ status, loading, onRefresh }: BackupSectionProps) => {
-  const [apiKey, setApiKey] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("nuc_stats_backup_api_key") || "your-secret-key";
-    }
-    return "your-secret-key";
-  });
-
+export const BackupSection = ({ status, loading }: BackupSectionProps) => {
   const [history, setHistory] = useState<BackupLogResponse[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [runningServices, setRunningServices] = useState<Record<string, boolean>>({});
-  const [message, setMessage] = useState<{ text: string; type: "success" | "error" | "info" } | null>(null);
-
-  // Save API key to localStorage when changed
-  const handleApiKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setApiKey(val);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("nuc_stats_backup_api_key", val);
-    }
-  };
 
   // Fetch history log list
   const fetchHistory = async () => {
@@ -51,30 +32,6 @@ export const BackupSection = ({ status, loading, onRefresh }: BackupSectionProps
   useEffect(() => {
     fetchHistory();
   }, [status]);
-
-  const triggerBackup = async (service: string) => {
-    setRunningServices(prev => ({ ...prev, [service]: true }));
-    setMessage({ text: `Lancement de la sauvegarde pour ${service === "all" ? "tous les services" : service}...`, type: "info" });
-    
-    try {
-      const res = await backupsService.runBackup(service, apiKey);
-      if (res.status === "success") {
-        setMessage({ text: `La sauvegarde pour ${service === "all" ? "tous les services" : service} a été mise en file d'attente avec succès !`, type: "success" });
-      } else {
-        setMessage({ text: `Erreur: ${res.message}`, type: "error" });
-      }
-    } catch (e: any) {
-      const errorMsg = e.response?.data?.detail || e.message || "Erreur de communication avec le serveur";
-      setMessage({ text: `Échec du lancement: ${errorMsg}`, type: "error" });
-    } finally {
-      // Keep loading spinner active for a few seconds to let the task initiate
-      setTimeout(() => {
-        setRunningServices(prev => ({ ...prev, [service]: false }));
-        onRefresh();
-        fetchHistory();
-      }, 3000);
-    }
-  };
 
   const formatSize = (bytes: number) => {
     if (bytes <= 0) return "--";
@@ -139,58 +96,12 @@ export const BackupSection = ({ status, loading, onRefresh }: BackupSectionProps
   const services = ["minecraft", "outline", "nextcloud"];
 
   return (
-    <div className="space-y-12">
-      {/* Configuration Header Row */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-6">
-        <div className="flex items-center gap-3 bg-zinc-950/40 border border-white/5 px-4 py-2 rounded-xl w-full md:w-auto">
-          <Key className="h-4 w-4 text-violet-400 shrink-0" />
-          <span className="text-xs font-semibold text-muted-foreground/60 whitespace-nowrap">Clé d'API :</span>
-          <input
-            type="password"
-            placeholder="Clé d'API..."
-            value={apiKey}
-            onChange={handleApiKeyChange}
-            className="bg-transparent border-0 text-xs text-foreground placeholder-muted-foreground/30 focus:ring-0 focus:outline-none w-full font-mono"
-          />
-        </div>
-
-        <div className="flex items-center gap-3 justify-end">
-          {message && (
-            <span className={`text-xs font-medium px-3 py-1.5 rounded-lg flex items-center gap-1.5 border ${
-              message.type === "success" 
-                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                : message.type === "error"
-                  ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                  : "bg-blue-500/10 text-blue-400 border-blue-500/20"
-            }`}>
-              {message.type === "success" && <CheckCircle2 className="h-3.5 w-3.5" />}
-              {message.type === "error" && <XCircle className="h-3.5 w-3.5" />}
-              {message.type === "info" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              <span>{message.text}</span>
-            </span>
-          )}
-          
-          <button
-            onClick={() => triggerBackup("all")}
-            disabled={runningServices["all"] || loading}
-            className="px-4 py-2 text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white rounded-xl border border-violet-500/30 flex items-center gap-2 cursor-pointer shadow-lg transition-all duration-150 disabled:opacity-50 shrink-0 select-none"
-          >
-            {runningServices["all"] ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <RefreshCw className="h-3.5 w-3.5" />
-            )}
-            <span>Tout sauvegarder</span>
-          </button>
-        </div>
-      </div>
-
+    <div className="space-y-8">
       {/* Services Cards Grid */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {services.map(srv => {
           const cfg = getServiceConfig(srv);
           const srvStatus = status ? status[srv as keyof BackupsStatusResponse] : null;
-          const isServiceRunning = runningServices[srv] || runningServices["all"];
           
           return (
             <Card 
@@ -200,28 +111,13 @@ export const BackupSection = ({ status, loading, onRefresh }: BackupSectionProps
             >
               <div>
                 {/* Header block */}
-                <div className="flex items-center justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-3.5">
-                    <div className={`p-3 rounded-2xl ${cfg.bg}`}>
-                      {cfg.icon}
-                    </div>
-                    <span className="font-poppins text-lg font-bold tracking-wide text-foreground/90 leading-tight">
-                      {cfg.title}
-                    </span>
+                <div className="flex items-center gap-3.5 mb-6">
+                  <div className={`p-3 rounded-2xl ${cfg.bg}`}>
+                    {cfg.icon}
                   </div>
-                  
-                  <button
-                    onClick={() => triggerBackup(srv)}
-                    disabled={isServiceRunning || loading}
-                    className="p-2.5 rounded-xl bg-black/30 border border-white/5 hover:border-violet-500/25 hover:bg-violet-500/10 text-muted-foreground hover:text-violet-300 transition-all cursor-pointer disabled:opacity-40"
-                    title={`Lancer la sauvegarde ${cfg.title}`}
-                  >
-                    {isServiceRunning ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-violet-400" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4" />
-                    )}
-                  </button>
+                  <span className="font-poppins text-lg font-bold tracking-wide text-foreground/90 leading-tight">
+                    {cfg.title}
+                  </span>
                 </div>
 
                 {/* Details layout */}
