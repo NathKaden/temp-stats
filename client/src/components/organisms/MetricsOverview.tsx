@@ -231,6 +231,8 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                       cy="50%"
                       innerRadius={42}
                       outerRadius={50}
+                      startAngle={90}
+                      endAngle={-270}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
@@ -325,6 +327,8 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                       cy="50%"
                       innerRadius={42}
                       outerRadius={50}
+                      startAngle={90}
+                      endAngle={-270}
                       paddingAngle={2}
                       dataKey="value"
                       stroke="none"
