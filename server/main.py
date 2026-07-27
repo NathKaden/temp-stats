@@ -89,8 +89,8 @@ async def backup_worker():
                     # Parse backup date and calculate elapsed time
                     latest_date = datetime.fromisoformat(latest["date"])
                     diff_seconds = (datetime.utcnow() - latest_date).total_seconds()
-                    # 48 hours = 172800 seconds
-                    if diff_seconds >= 172800:
+                    # 7 days = 604800 seconds
+                    if diff_seconds >= 604800:
                         print(f"Latest backup for {service} is {diff_seconds / 3600:.1f} hours old. Triggering scheduled backup...")
                         needs_backup = True
                 

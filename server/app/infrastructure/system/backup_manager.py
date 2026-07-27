@@ -201,10 +201,10 @@ class BackupManager:
             if res.returncode != 0:
                 raise Exception(f"MariaDB mysqldump failed: {res.stderr}")
 
-        # 2. Config files backup (excluding large database and storage volume data directories)
+        # 2. Config & Data files backup (excluding only the database mount to avoid active locks)
         config_tar = os.path.join(target_dir, f"nextcloud_config_{date_str}.tar.gz")
         res = subprocess.run([
-            "tar", "--exclude=./db", "--exclude=./data", "--exclude=./nextcloud-data",
+            "tar", "--exclude=./db",
             "-czf", config_tar, "-C", "/opt/nextcloud", "."
         ], capture_output=True, text=True)
         if res.returncode != 0:
