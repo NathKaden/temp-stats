@@ -15,6 +15,7 @@ interface BackupSectionProps {
 export const BackupSection = ({ status, loading }: BackupSectionProps) => {
   const [history, setHistory] = useState<BackupLogResponse[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch history log list
   const fetchHistory = async () => {
@@ -32,6 +33,11 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
   useEffect(() => {
     fetchHistory();
   }, [status]);
+
+  // Reset pagination to first page when new history data is loaded
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [history]);
 
   const formatSize = (bytes: number) => {
     if (bytes <= 0) return "--";
@@ -112,8 +118,12 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
 
   const services = ["minecraft", "outline", "nextcloud"];
 
+  const ITEMS_PER_PAGE = 10;
+  const totalPages = Math.ceil(history.length / ITEMS_PER_PAGE);
+  const paginatedHistory = history.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-16">
       {/* Services Cards Grid */}
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
         {services.map(srv => {
@@ -196,12 +206,10 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
       </div>
 
       {/* History Log Section */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center ml-1">
-          <h3 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400">Historique des sauvegardes</h3>
-        </div>
+      <div className="pt-8 space-y-6">
+        <h3 className="font-poppins text-2xl font-bold tracking-tight text-zinc-400 ml-1">Historique</h3>
 
-        <Card className="glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl overflow-hidden p-0 gap-0 py-0">
+        <Card className="glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl overflow-hidden p-0 gap-0 py-0 flex flex-col">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
@@ -214,8 +222,8 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-xs">
-                {history.length > 0 ? (
-                  history.map((log) => {
+                {paginatedHistory.length > 0 ? (
+                  paginatedHistory.map((log) => {
                     const cfg = getServiceConfig(log.service);
                     return (
                       <tr key={log.id} className="hover:bg-white/5 transition-colors">
@@ -291,6 +299,30 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
               </tbody>
             </table>
           </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-4 border-t border-white/5 bg-zinc-950/20 text-xs text-muted-foreground">
+              <span>
+                Page <strong className="text-zinc-300 font-semibold">{currentPage}</strong> sur <strong className="text-zinc-300 font-semibold">{totalPages}</strong>
+              </span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-white/5 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-900 hover:text-foreground transition-all duration-200 disabled:opacity-40 disabled:hover:text-zinc-300 disabled:cursor-not-allowed select-none cursor-pointer font-medium"
+                >
+                  Précédent
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-white/5 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-900 hover:text-foreground transition-all duration-200 disabled:opacity-40 disabled:hover:text-zinc-300 disabled:cursor-not-allowed select-none cursor-pointer font-medium"
+                >
+                  Suivant
+                </button>
+              </div>
+            </div>
+          )}
         </Card>
       </div>
     </div>
