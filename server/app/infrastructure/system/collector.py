@@ -243,20 +243,14 @@ class SystemMetricsCollector:
         except Exception:
             pass
 
-        # 3. Fallback: Estimate based on CPU usage (ideal for Docker containers or local dev on Windows)
-        # Base temp ~38C, max load temp ~72C
-        base_temp = 38.0
-        max_temp = 72.0
-        estimated_temp = base_temp + (max_temp - base_temp) * (cpu_usage / 100.0)
-        return round(estimated_temp, 1)
+        # 3. Fallback: Return 0.0 if no hardware sensors are available
+        return 0.0
 
     @staticmethod
     def get_disk_temp(cpu_temp: float) -> float:
         # Reading disk temp usually requires smartctl and root privileges, which is rarely
-        # available in containers. We return an estimation proportional to CPU temp.
-        base_disk_temp = 32.0
-        estimated = base_disk_temp + (cpu_temp - 38.0) * 0.25
-        return round(max(25.0, min(estimated, 60.0)), 1)
+        # available in containers. We return 0.0 instead of a fake estimation.
+        return 0.0
 
     @staticmethod
     def get_uptime() -> str:
