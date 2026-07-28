@@ -287,7 +287,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           </div>
 
           {/* Console Text Container */}
-          <div className="flex-grow p-3 sm:p-4 bg-black/10 overflow-y-auto font-mono custom-scrollbar h-0 min-h-[400px]">
+          <div className="flex-grow p-3 sm:p-4 bg-black/10 overflow-y-auto overscroll-contain font-mono custom-scrollbar h-0 min-h-[400px]">
             {filteredLogs.length > 0 ? (
               <div className="space-y-0.5">
                 {filteredLogs.map((line, index) => formatLogLine(line, index))}

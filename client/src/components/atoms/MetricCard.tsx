@@ -147,7 +147,7 @@ export const MetricCard = ({
   }
 
   return (
-    <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group ${className || ""}`}>
+    <Card className={`relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out ${currentColors.cardStyle} group ${className || ""}`}>
       <CardHeader className="flex flex-row items-center gap-3 space-y-0 pb-2 z-10">
         {icon && (
           <div className={`${currentColors.iconColor} transition-all duration-300 shrink-0`}>

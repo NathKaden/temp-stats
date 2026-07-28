@@ -32,6 +32,8 @@ export const DashboardTemplate = ({
 }: DashboardTemplateProps) => {
   const [timeString, setTimeString] = useState("");
   const gitVersion = process.env.NEXT_PUBLIC_GIT_COMMIT || "unknown";
+  const tabs = ["dashboard", "history", "services", "minecraft", "backups"];
+  const activeIndex = tabs.indexOf(activeTab);
 
   useEffect(() => {
     const updateTime = () => {
@@ -207,64 +209,57 @@ export const DashboardTemplate = ({
 
       {/* Bottom Nav Bar - Mobile Only */}
       <div className="md:hidden fixed bottom-5 inset-x-0 mx-4 z-30 flex justify-center">
-        <div className="flex items-center justify-between w-full max-w-[370px] px-2 py-2 rounded-3xl border border-white/10 bg-zinc-950/40 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="grid grid-cols-5 w-full max-w-[370px] px-2 py-2 rounded-3xl border border-white/5 bg-zinc-950/15 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative">
+          {/* Sliding active tab indicator */}
+          <div 
+            className="absolute top-2 bottom-2 rounded-2xl bg-white/10 transition-all duration-300 ease-out"
+            style={{
+              left: `calc(${activeIndex * 20}% + 8px)`,
+              width: `calc(20% - 16px)`
+            }}
+          />
           <button
             onClick={() => setActiveTab("dashboard")}
             className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "dashboard" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+              activeTab === "dashboard" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
             }`}
           >
-            {activeTab === "dashboard" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
             <LayoutDashboard className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Aperçu</span>
           </button>
           <button
             onClick={() => setActiveTab("history")}
             className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "history" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+              activeTab === "history" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
             }`}
           >
-            {activeTab === "history" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
             <TrendingUp className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Histoire</span>
           </button>
           <button
             onClick={() => setActiveTab("services")}
             className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "services" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+              activeTab === "services" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
             }`}
           >
-            {activeTab === "services" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
             <Server className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Services</span>
           </button>
           <button
             onClick={() => setActiveTab("minecraft")}
             className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "minecraft" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+              activeTab === "minecraft" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
             }`}
           >
-            {activeTab === "minecraft" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
             <Sword className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Minecraft</span>
           </button>
           <button
             onClick={() => setActiveTab("backups")}
             className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-              activeTab === "backups" ? "text-violet-300 scale-105" : "text-muted-foreground/60"
+              activeTab === "backups" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
             }`}
           >
-            {activeTab === "backups" && (
-              <span className="absolute inset-0 bg-white/10 rounded-2xl -z-10" />
-            )}
             <Database className="h-4 w-4" />
             <span className="text-[9px] font-medium tracking-wide">Backups</span>
           </button>
