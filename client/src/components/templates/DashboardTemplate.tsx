@@ -209,7 +209,7 @@ export const DashboardTemplate = ({
 
       {/* Bottom Nav Bar - Mobile Only */}
       <div className="md:hidden fixed bottom-5 inset-x-0 mx-4 z-30 flex justify-center">
-        <div className="w-full max-w-[370px] px-2 py-2 rounded-3xl border border-white/5 bg-zinc-950/15 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
+        <div className="w-full max-w-[320px] px-2 py-2 rounded-3xl border border-white/5 bg-zinc-950/15 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
           <div className="relative w-full grid grid-cols-5">
             {/* Sliding active tab indicator */}
             <div 
@@ -219,12 +219,12 @@ export const DashboardTemplate = ({
                 width: `20%`
               }}
             >
-              <div className="mx-1 h-full bg-white/10 rounded-2xl" />
+              <div className="mx-0.5 h-full bg-white/10 rounded-2xl" />
             </div>
             <button
               onClick={() => setActiveTab("dashboard")}
               className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-                activeTab === "dashboard" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
+                activeTab === "dashboard" ? "text-violet-300 font-semibold" : "text-muted-foreground/60"
               }`}
             >
               <LayoutDashboard className="h-4 w-4" />
@@ -233,7 +233,7 @@ export const DashboardTemplate = ({
             <button
               onClick={() => setActiveTab("history")}
               className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-                activeTab === "history" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
+                activeTab === "history" ? "text-violet-300 font-semibold" : "text-muted-foreground/60"
               }`}
             >
               <TrendingUp className="h-4 w-4" />
@@ -242,7 +242,7 @@ export const DashboardTemplate = ({
             <button
               onClick={() => setActiveTab("services")}
               className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-                activeTab === "services" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
+                activeTab === "services" ? "text-violet-300 font-semibold" : "text-muted-foreground/60"
               }`}
             >
               <Server className="h-4 w-4" />
@@ -251,7 +251,7 @@ export const DashboardTemplate = ({
             <button
               onClick={() => setActiveTab("minecraft")}
               className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-                activeTab === "minecraft" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
+                activeTab === "minecraft" ? "text-violet-300 font-semibold" : "text-muted-foreground/60"
               }`}
             >
               <Sword className="h-4 w-4" />
@@ -260,7 +260,7 @@ export const DashboardTemplate = ({
             <button
               onClick={() => setActiveTab("backups")}
               className={`relative flex flex-col items-center gap-1 py-1.5 px-2 rounded-2xl transition-all duration-300 cursor-pointer border-0 bg-transparent ${
-                activeTab === "backups" ? "text-violet-300 scale-105 font-semibold" : "text-muted-foreground/60"
+                activeTab === "backups" ? "text-violet-300 font-semibold" : "text-muted-foreground/60"
               }`}
             >
               <Database className="h-4 w-4" />
