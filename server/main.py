@@ -69,8 +69,21 @@ async def cron_worker():
 async def backup_worker():
     # Wait a few seconds after startup to avoid concurrency conflicts with initial metrics capture
     await asyncio.sleep(15)
-    print("Background backup worker started. Checking backups status every hour.")
-    
+    # Mark any zombie "running" backups from previous lifecycle as failed/interrupted
+    try:
+        db = SessionLocal()
+        from app.infrastructure.db.models import BackupLog
+        zombies = db.query(BackupLog).filter(BackupLog.status == "running").all()
+        if zombies:
+            print(f"Cleaning up {len(zombies)} zombie running backup entries...")
+            for z in zombies:
+                z.status = "failed"
+                z.error_message = "Interrompu par le redémarrage du serveur"
+            db.commit()
+        db.close()
+    except Exception as e:
+        print(f"Error cleaning up zombie backup logs: {e}")
+
     while True:
         try:
             db = SessionLocal()
