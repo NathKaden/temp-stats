@@ -12,6 +12,8 @@ from app.core.config import settings
 from app.core.database import engine, Base, SessionLocal
 from app.interfaces.api.routes import router as api_router
 from app.use_cases.metrics import MetricsUseCases
+from app.infrastructure.system.backup_manager import BackupManager
+from datetime import datetime
 
 # Initialize DB tables with self-healing schema validation
 try:
@@ -64,14 +66,97 @@ async def cron_worker():
         except Exception as e:
             print(f"Error during scheduled metrics capture: {e}")
 
+async def backup_worker():
+    # Wait a few seconds after startup to avoid concurrency conflicts with initial metrics capture
+    await asyncio.sleep(15)
+    # Mark any zombie "running" backups from previous lifecycle as failed/interrupted
+    try:
+        db = SessionLocal()
+        from app.infrastructure.db.models import BackupLog
+        zombies = db.query(BackupLog).filter(BackupLog.status == "running").all()
+        if zombies:
+            print(f"Cleaning up {len(zombies)} zombie running backup entries...")
+            for z in zombies:
+                z.status = "failed"
+                z.error_message = "Interrompu par le redémarrage du serveur"
+                
+                # Physically clean up the aborted backup folder to free disk space
+                try:
+                    if z.timestamp:
+                        folder_str = z.timestamp.strftime("%Y%m%d_%H%M%S")
+                        folder_path = os.path.join("/mnt/backup", z.service, folder_str)
+                        if os.path.exists(folder_path):
+                            print(f"Physically removing aborted backup folder on startup: {folder_path}")
+                            for root, dirs, files in os.walk(folder_path, topdown=False):
+                                for file in files:
+                                    os.remove(os.path.join(root, file))
+                                for d in dirs:
+                                    os.rmdir(os.path.join(root, d))
+                            os.rmdir(folder_path)
+                except Exception as del_err:
+                    print(f"Failed to delete aborted folder {z.service}: {del_err}")
+            db.commit()
+        db.close()
+    except Exception as e:
+        print(f"Error cleaning up zombie backup logs: {e}")
+
+    while True:
+        try:
+            db = SessionLocal()
+            manager = BackupManager(db)
+            status = manager.get_latest_backups_status()
+            
+            # Check backups status for each service
+            for service in ["minecraft", "outline", "nextcloud"]:
+                latest = status[service]["latest_backup"]
+                needs_backup = False
+                
+                if latest is None:
+                    print(f"No physical backup found for {service}. Triggering initial backup...")
+                    needs_backup = True
+                else:
+                    # Parse backup date and calculate elapsed time
+                    latest_date = datetime.fromisoformat(latest["date"])
+                    diff_seconds = (datetime.utcnow() - latest_date).total_seconds()
+                    
+                    # Catch-up check: if the latest Nextcloud backup folder size is suspiciously small
+                    # (e.g. less than 10MB) despite having media files, it means it's a legacy backup
+                    # from before the fix. We trigger a fresh backup immediately.
+                    if service == "nextcloud" and latest["size_bytes"] < 10 * 1024 * 1024:
+                        print(f"Latest Nextcloud backup is too small ({latest['size_bytes']} bytes), likely legacy. Triggering fresh backup...")
+                        needs_backup = True
+                    # 7 days = 604800 seconds
+                    elif diff_seconds >= 604800:
+                        print(f"Latest backup for {service} is {diff_seconds / 3600:.1f} hours old. Triggering scheduled backup...")
+                        needs_backup = True
+                
+                if needs_backup:
+                    # Run backup inside a separate worker thread to avoid blocking the event loop
+                    await asyncio.to_thread(manager.run_backup, service)
+            
+            db.close()
+        except Exception as e:
+            print(f"Error inside background backup worker: {e}")
+            
+        try:
+            # Check backups once every hour (3600 seconds)
+            await asyncio.sleep(3600)
+        except asyncio.CancelledError:
+            print("Backup worker background task cancelled.")
+            break
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: launch background worker task
-    task = asyncio.create_task(cron_worker())
-    background_tasks.add(task)
-    task.add_done_callback(background_tasks.discard)
+    # Startup: launch background worker tasks
+    task_cron = asyncio.create_task(cron_worker())
+    background_tasks.add(task_cron)
+    task_cron.add_done_callback(background_tasks.discard)
+
+    task_backup = asyncio.create_task(backup_worker())
+    background_tasks.add(task_backup)
+    task_backup.add_done_callback(background_tasks.discard)
     yield
-    # Shutdown: cancel background worker task
+    # Shutdown: cancel background worker tasks
     for task in background_tasks:
         task.cancel()
     if background_tasks:

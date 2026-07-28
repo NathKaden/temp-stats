@@ -8,7 +8,7 @@ services:
     container_name: nuc-stats-server
     volumes:
       - ./server-data:/app/data
-      - /mnt/backup:/mnt/backup:ro
+      - /mnt/backup:/mnt/backup
       - /opt:/opt:ro
       - /sys:/sys:ro
       - /proc:/host/proc:ro

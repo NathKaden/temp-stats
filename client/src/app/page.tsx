@@ -7,8 +7,9 @@ import { ServicesSection } from "@/components/organisms/ServicesSection";
 import { HistorySection } from "@/components/organisms/HistorySection";
 import { DataTable } from "@/components/molecules/DataTable";
 import { MinecraftSection } from "@/components/organisms/MinecraftSection";
-import { metricsService } from "@/services/api";
-import { SystemMetric, MinecraftStatus } from "@/types";
+import { BackupSection } from "@/components/organisms/BackupSection";
+import { metricsService, backupsService } from "@/services/api";
+import { SystemMetric, MinecraftStatus, BackupsStatusResponse } from "@/types";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,12 +19,16 @@ export default function Home() {
   const [history, setHistory] = useState<SystemMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "minecraft">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "services" | "history" | "minecraft" | "backups">("dashboard");
   const [timeRange, setTimeRange] = useState<"24h" | "7d" | "30d" | "all">("30d");
 
   // Minecraft specific states
   const [minecraftStatus, setMinecraftStatus] = useState<MinecraftStatus | null>(null);
   const [minecraftLoading, setMinecraftLoading] = useState(false);
+
+  // Backups specific states
+  const [backupsStatus, setBackupsStatus] = useState<BackupsStatusResponse | null>(null);
+  const [backupsLoading, setBackupsLoading] = useState(false);
 
   const fetchLatestData = async () => {
     try {
@@ -59,6 +64,18 @@ export default function Home() {
     }
   };
 
+  const fetchBackupsData = async (showLoading = false) => {
+    try {
+      if (showLoading) setBackupsLoading(true);
+      const data = await backupsService.getStatus();
+      setBackupsStatus(data);
+    } catch (err) {
+      console.error("Failed to fetch backups status:", err);
+    } finally {
+      if (showLoading) setBackupsLoading(false);
+    }
+  };
+
   // Initial load: fetch latest data only (loads instantly)
   useEffect(() => {
     const init = async () => {
@@ -66,7 +83,7 @@ export default function Home() {
       setLoading(true);
       
       const savedTab = localStorage.getItem("nuc_active_tab");
-      if (savedTab && ["dashboard", "services", "history", "minecraft"].includes(savedTab)) {
+      if (savedTab && ["dashboard", "services", "history", "minecraft", "backups"].includes(savedTab)) {
         setActiveTab(savedTab as any);
       }
 
@@ -90,6 +107,8 @@ export default function Home() {
         fetchHistoryData();
       } else if (activeTab === "minecraft") {
         fetchMinecraftData(true);
+      } else if (activeTab === "backups") {
+        fetchBackupsData(true);
       }
     }
   }, [activeTab, isMounted]);
@@ -114,10 +133,17 @@ export default function Home() {
         }
       }, 5000);
 
+      const intervalBackups = setInterval(() => {
+        if (activeTab === "backups") {
+          fetchBackupsData();
+        }
+      }, 10000);
+
       return () => {
         clearInterval(intervalLatest);
         clearInterval(intervalHistory);
         clearInterval(intervalMinecraft);
+        clearInterval(intervalBackups);
       };
     }
   }, [isMounted, activeTab]);
@@ -135,7 +161,7 @@ export default function Home() {
       <h1 className="text-xl tracking-tight text-violet-300 font-bold font-poppins">
         Dashboard
       </h1>
-      {(loading || (activeTab === "minecraft" && minecraftLoading)) && (
+      {(loading || (activeTab === "minecraft" && minecraftLoading) || (activeTab === "backups" && backupsLoading)) && (
         <Loader2 className="h-4 w-4 animate-spin text-violet-400/60 ml-1.5 shrink-0" />
       )}
     </div>
@@ -200,6 +226,12 @@ export default function Home() {
           status={minecraftStatus} 
           loading={minecraftLoading} 
           onRefresh={() => fetchMinecraftData(true)} 
+        />
+      }
+      backups={
+        <BackupSection
+          status={backupsStatus}
+          loading={backupsLoading}
         />
       }
       activeTab={activeTab}

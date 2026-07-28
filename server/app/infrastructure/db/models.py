@@ -25,3 +25,15 @@ class SystemMetric(Base):
     disk_services_json = Column(String, nullable=True)
     cpu_name = Column(String, nullable=True)
     ram_services_json = Column(String, nullable=True)
+
+
+class BackupLog(Base):
+    __tablename__ = "backup_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    service = Column(String, index=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    status = Column(String)
+    size_bytes = Column(Integer, default=0)
+    files_json = Column(String, nullable=True)
+    error_message = Column(String, nullable=True)
