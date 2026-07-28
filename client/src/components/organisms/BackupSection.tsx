@@ -43,7 +43,11 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
 
   const formatDate = (isoStr: string) => {
     try {
-      const dt = new Date(isoStr);
+      // Append 'Z' to treat naive ISO string as UTC if no timezone suffix is present
+      const normalizedStr = (isoStr.endsWith("Z") || isoStr.includes("+") || isoStr.includes("-", 10))
+        ? isoStr
+        : isoStr + "Z";
+      const dt = new Date(normalizedStr);
       return dt.toLocaleString("fr-FR", {
         day: "2-digit",
         month: "2-digit",
