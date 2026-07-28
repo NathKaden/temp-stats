@@ -22,7 +22,7 @@ interface MinecraftSectionProps {
 export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectionProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isPaused, setIsPaused] = useState(false);
-  const consoleEndRef = useRef<HTMLDivElement>(null);
+  const consoleContainerRef = useRef<HTMLDivElement>(null);
   const [pausedLogs, setPausedLogs] = useState<string[]>([]);
   const prevLogsSerializedRef = useRef<string>("");
 
@@ -37,8 +37,8 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   useEffect(() => {
     const serialized = pausedLogs.join("\n");
     if (serialized !== prevLogsSerializedRef.current) {
-      if (consoleEndRef.current) {
-        consoleEndRef.current.scrollIntoView({ behavior: "smooth" });
+      if (consoleContainerRef.current) {
+        consoleContainerRef.current.scrollTop = consoleContainerRef.current.scrollHeight;
       }
       prevLogsSerializedRef.current = serialized;
     }
@@ -287,11 +287,13 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           </div>
 
           {/* Console Text Container */}
-          <div className="flex-grow p-3 sm:p-4 bg-black/10 overflow-y-auto overscroll-contain font-mono custom-scrollbar h-0 min-h-[400px]">
+          <div 
+            ref={consoleContainerRef}
+            className="flex-grow p-3 sm:p-4 bg-black/10 overflow-y-auto overscroll-contain font-mono custom-scrollbar h-0 min-h-[400px]"
+          >
             {filteredLogs.length > 0 ? (
               <div className="space-y-0.5">
                 {filteredLogs.map((line, index) => formatLogLine(line, index))}
-                <div ref={consoleEndRef} />
               </div>
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground/40 py-12 gap-1.5 font-sans">
