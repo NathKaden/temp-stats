@@ -115,7 +115,7 @@ export const DashboardTemplate = ({
               }`}
             >
               <Database className={`mr-2.5 h-4 w-4 transition-colors duration-200 ${activeTab === "backups" ? "text-violet-300" : "text-muted-foreground/60 group-hover:text-foreground"}`} />
-              Sauvegardes
+              Backups
             </button>
           </nav>
 
@@ -197,7 +197,7 @@ export const DashboardTemplate = ({
 
             {activeTab === "backups" && backups && (
               <section className="pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Sauvegardes</h2>
+                <h2 className="font-poppins text-3xl font-bold tracking-tight text-zinc-400 ml-1 mb-6">Backups</h2>
                 {backups}
               </section>
             )}

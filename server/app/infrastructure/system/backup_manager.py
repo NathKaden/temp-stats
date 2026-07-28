@@ -241,30 +241,42 @@ class BackupManager:
             subprocess.run(["docker", "exec", "minecraft-paper", "rcon-cli", "save-on"], capture_output=True, text=True)
 
     def _cleanup_old_backups(self, service: str):
-        """Finds backup folders older than 30 days for this service and deletes them."""
+        """Keeps only a fixed number of recent backups to prevent disk saturation on small drives."""
         service_dir = os.path.join(self.backup_root, service)
         if not os.path.exists(service_dir):
             return
 
-        now = time.time()
-        thirty_days_seconds = 30 * 24 * 60 * 60
-
+        # Find folders
+        folders = []
         for name in os.listdir(service_dir):
             dir_path = os.path.join(service_dir, name)
             if os.path.isdir(dir_path):
                 try:
-                    # Parse timestamp format YYYYMMDD_HHMMSS
-                    dt = datetime.strptime(name, "%Y%m%d_%H%M%S")
-                    folder_timestamp = dt.timestamp()
-                    if (now - folder_timestamp) > thirty_days_seconds:
-                        print(f"Cleaning up old backup: {dir_path}")
-                        # Recursively delete files and folder
-                        for root, dirs, files in os.walk(dir_path, topdown=False):
-                            for file in files:
-                                os.remove(os.path.join(root, file))
-                            for d in dirs:
-                                os.rmdir(os.path.join(root, d))
-                        os.rmdir(dir_path)
+                    # Verify it matches the date format YYYYMMDD_HHMMSS
+                    datetime.strptime(name, "%Y%m%d_%H%M%S")
+                    folders.append((name, dir_path))
                 except ValueError:
-                    # Ignore folders that don't match the timestamp format
                     continue
+
+        # Sort folders by name descending (newest first)
+        folders.sort(key=lambda x: x[0], reverse=True)
+
+        # Define limits
+        limit = 3
+        if service == "nextcloud":
+            limit = 1  # Keep only the latest 1 backup of Nextcloud due to 120GB SSD limit
+        elif service == "minecraft":
+            limit = 3  # Keep latest 3 backups
+        elif service == "outline":
+            limit = 5  # Keep latest 5 backups
+
+        # Delete folders exceeding the limit
+        if len(folders) > limit:
+            for name, dir_path in folders[limit:]:
+                print(f"Cleaning up old backup exceeding limit ({limit}): {dir_path}")
+                for root, dirs, files in os.walk(dir_path, topdown=False):
+                    for file in files:
+                        os.remove(os.path.join(root, file))
+                    for d in dirs:
+                        os.rmdir(os.path.join(root, d))
+                os.rmdir(dir_path)
