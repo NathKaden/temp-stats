@@ -9,6 +9,8 @@ from app.infrastructure.db.backup_repository import BackupLogsRepository
 from app.domain.models import BackupLogDomain
 
 class BackupManager:
+    _active_backups = set()
+
     def __init__(self, db: Session, backup_root: str = "/mnt/backup"):
         self.db = db
         self.backup_root = backup_root
@@ -86,6 +88,13 @@ class BackupManager:
         if service not in ["minecraft", "outline", "nextcloud"]:
             return {"status": "failed", "error": f"Unknown service: {service}"}
 
+        # Prevent concurrent duplicate executions of the same service backup
+        if service in self._active_backups:
+            print(f"Backup for {service} is already running. Skipping duplicate run.")
+            return {"status": "skipped", "message": f"Backup for {service} is already running."}
+
+        self._active_backups.add(service)
+
         # 1. Create a DB log entry with status 'running'
         log_domain = BackupLogDomain(
             service=service,
@@ -157,6 +166,9 @@ class BackupManager:
                 pass
 
             return {"status": "failed", "service": service, "error": error_msg}
+
+        finally:
+            self._active_backups.discard(service)
 
     def _backup_outline(self, target_dir: str, date_str: str):
         # 1. Database dump
