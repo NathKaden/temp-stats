@@ -41,12 +41,24 @@ class BackupManager:
             latest_db_log = self.repo.get_latest_for_service(service)
             service_dir = os.path.join(self.backup_root, service)
             
+            # Fetch successful logs to cross-reference physical folders
+            from app.infrastructure.db.models import BackupLog
+            successful_logs = self.db.query(BackupLog).filter(
+                BackupLog.service == service,
+                BackupLog.status == "success"
+            ).all()
+            successful_folders = {log.timestamp.strftime("%Y%m%d_%H%M%S") for log in successful_logs if log.timestamp}
+
             # Find physically existing backups on disk
             physical_backups = []
             if os.path.exists(service_dir):
                 for name in os.listdir(service_dir):
                     dir_path = os.path.join(service_dir, name)
                     if os.path.isdir(dir_path):
+                        # Ignore folders that do not match a successful DB backup log (failed or interrupted)
+                        if name not in successful_folders:
+                            continue
+
                         # Calculate folder size and list files
                         size = 0
                         files = []
@@ -246,6 +258,14 @@ class BackupManager:
         if not os.path.exists(service_dir):
             return
 
+        # Get successful folder timestamps from the database
+        from app.infrastructure.db.models import BackupLog
+        successful_logs = self.db.query(BackupLog).filter(
+            BackupLog.service == service,
+            BackupLog.status == "success"
+        ).all()
+        successful_folders = {log.timestamp.strftime("%Y%m%d_%H%M%S") for log in successful_logs if log.timestamp}
+
         # Find folders
         folders = []
         for name in os.listdir(service_dir):
@@ -254,7 +274,17 @@ class BackupManager:
                 try:
                     # Verify it matches the date format YYYYMMDD_HHMMSS
                     datetime.strptime(name, "%Y%m%d_%H%M%S")
-                    folders.append((name, dir_path))
+                    if name in successful_folders:
+                        folders.append((name, dir_path))
+                    else:
+                        # Delete failed, aborted or orphan directories
+                        print(f"Deleting orphan/failed backup directory: {dir_path}")
+                        for root, dirs, files in os.walk(dir_path, topdown=False):
+                            for file in files:
+                                os.remove(os.path.join(root, file))
+                            for d in dirs:
+                                os.rmdir(os.path.join(root, d))
+                        os.rmdir(dir_path)
                 except ValueError:
                     continue
 

@@ -79,6 +79,22 @@ async def backup_worker():
             for z in zombies:
                 z.status = "failed"
                 z.error_message = "Interrompu par le redémarrage du serveur"
+                
+                # Physically clean up the aborted backup folder to free disk space
+                try:
+                    if z.timestamp:
+                        folder_str = z.timestamp.strftime("%Y%m%d_%H%M%S")
+                        folder_path = os.path.join("/mnt/backup", z.service, folder_str)
+                        if os.path.exists(folder_path):
+                            print(f"Physically removing aborted backup folder on startup: {folder_path}")
+                            for root, dirs, files in os.walk(folder_path, topdown=False):
+                                for file in files:
+                                    os.remove(os.path.join(root, file))
+                                for d in dirs:
+                                    os.rmdir(os.path.join(root, d))
+                            os.rmdir(folder_path)
+                except Exception as del_err:
+                    print(f"Failed to delete aborted folder {z.service}: {del_err}")
             db.commit()
         db.close()
     except Exception as e:
