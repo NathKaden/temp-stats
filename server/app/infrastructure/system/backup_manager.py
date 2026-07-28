@@ -202,10 +202,11 @@ class BackupManager:
                 raise Exception(f"MariaDB mysqldump failed: {res.stderr}")
 
         # 2. Config & Data files backup (excluding only the database mount to avoid active locks)
-        config_tar = os.path.join(target_dir, f"nextcloud_config_{date_str}.tar.gz")
+        # We use a plain tar archive (no gzip compression) to process 60GB of media files quickly without CPU overhead.
+        config_tar = os.path.join(target_dir, f"nextcloud_config_{date_str}.tar")
         res = subprocess.run([
             "tar", "--exclude=./db",
-            "-czf", config_tar, "-C", "/opt/nextcloud", "."
+            "-cf", config_tar, "-C", "/opt/nextcloud", "."
         ], capture_output=True, text=True)
         if res.returncode != 0:
             raise Exception(f"Nextcloud config compression failed: {res.stderr}")

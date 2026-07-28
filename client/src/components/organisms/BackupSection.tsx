@@ -180,15 +180,8 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
 
       {/* History Log Section */}
       <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between ml-1">
+        <div className="flex items-center ml-1">
           <h3 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400">Historique des sauvegardes</h3>
-          <button 
-            onClick={fetchHistory} 
-            disabled={historyLoading}
-            className="p-2 rounded-lg bg-zinc-950/40 border border-white/5 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${historyLoading ? "animate-spin text-violet-400" : ""}`} />
-          </button>
         </div>
 
         <Card className="glass-card-blended ring-0 bg-card/40 backdrop-blur-xl border border-white/5 shadow-xl overflow-hidden p-0 gap-0 py-0">
