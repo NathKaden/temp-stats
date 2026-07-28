@@ -47,6 +47,22 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
     };
   });
 
+  // Downsample helper to prevent rendering lag on large timeframes
+  const downsample = (data: any[], maxPoints = 150) => {
+    if (data.length <= maxPoints) return data;
+    const step = Math.ceil(data.length / maxPoints);
+    const sampled = [];
+    for (let i = 0; i < data.length; i += step) {
+      sampled.push(data[i]);
+    }
+    if (sampled.length > 0 && data.length > 0 && sampled[sampled.length - 1].id !== data[data.length - 1].id) {
+      sampled.push(data[data.length - 1]);
+    }
+    return sampled;
+  };
+
+  const chartData = downsample(historyWithCumulative, 150);
+
   return (
     <div className="flex flex-col gap-16">
       {/* Section Utilisation */}
@@ -55,21 +71,21 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
         <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
           <MetricChart
             title="Température CPU"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="cpu_temp"
             color="#3b82f6"
             unit="°C"
           />
           <MetricChart
             title="Utilisation CPU"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="cpu_usage"
             color="#60a5fa"
             unit="%"
           />
           <MetricChart
             title="Utilisation RAM"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="ram_usage_percent"
             color="#ff2c4c"
             unit="%"
@@ -83,28 +99,28 @@ export const HistorySection = ({ history, timeRange }: HistorySectionProps) => {
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
           <MetricChart
             title="Usage Réseau (Entrant)"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="net_rx_mb"
             color="#8b5cf6"
             unit=" Mo/s"
           />
           <MetricChart
             title="Usage Réseau (Sortant)"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="net_tx_mb"
             color="#6366f1"
             unit=" Mo/s"
           />
           <MetricChart
             title="Consommation Électrique"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="power_usage_w"
             color="#eab308"
             unit=" W"
           />
           <MetricChart
             title="Coût Électrique Cumulé (depuis le 10/07)"
-            data={historyWithCumulative}
+            data={chartData}
             dataKey="cumulative_cost_eur"
             color="#10b981"
             unit=" €"
