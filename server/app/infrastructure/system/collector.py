@@ -287,17 +287,22 @@ class SystemMetricsCollector:
                     
                     # Try with '-d sat' for USB-SATA bridges
                     result = subprocess.run(["smartctl", "-A", "-d", "sat", dev], capture_output=True, text=True)
-                    if result.returncode == 0:
-                        for line in result.stdout.splitlines():
-                            # Look for standard SMART temperature attributes
-                            if "Temperature_Celsius" in line or "Airflow_Temperature_Cel" in line:
-                                parts = line.split()
-                                if len(parts) >= 10:
-                                    try:
-                                        sata_temp = float(parts[9])
+                    # smartctl returns non-zero if there are any logged SMART errors, so we don't check returncode.
+                    for line in result.stdout.splitlines():
+                        # Look for standard SMART temperature attributes (case insensitive)
+                        line_lower = line.lower()
+                        if "temperature" in line_lower:
+                            parts = line.split()
+                            # Typically the raw value is at the 10th column (index 9)
+                            if len(parts) >= 10:
+                                try:
+                                    # Some disks have it at index 9, others at the end
+                                    temp_val = float(parts[9])
+                                    if temp_val > 0.0:
+                                        sata_temp = temp_val
                                         break
-                                    except ValueError:
-                                        continue
+                                except ValueError:
+                                    pass
                     if sata_temp > 0.0:
                         break
             except Exception as e:
