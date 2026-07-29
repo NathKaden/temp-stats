@@ -247,10 +247,37 @@ class SystemMetricsCollector:
         return 0.0
 
     @staticmethod
-    def get_disk_temp(cpu_temp: float) -> float:
-        # Reading disk temp usually requires smartctl and root privileges, which is rarely
-        # available in containers. We return 0.0 instead of a fake estimation.
-        return 0.0
+    def get_disk_temps() -> tuple[float, float]:
+        """Reads NVMe and SATA temperatures directly from Linux sysfs (hwmon)."""
+        nvme_temp = 0.0
+        sata_temp = 0.0
+        
+        try:
+            hwmon_dir = "/sys/class/hwmon"
+            if os.path.exists(hwmon_dir):
+                for hwmon in os.listdir(hwmon_dir):
+                    hwmon_path = os.path.join(hwmon_dir, hwmon)
+                    name_path = os.path.join(hwmon_path, "name")
+                    temp_path = os.path.join(hwmon_path, "temp1_input")
+                    
+                    if os.path.exists(name_path) and os.path.exists(temp_path):
+                        with open(name_path, "r") as f:
+                            name = f.read().strip()
+                        
+                        # Read NVMe temperature
+                        if name == "nvme" and nvme_temp == 0.0:
+                            with open(temp_path, "r") as f:
+                                nvme_temp = float(f.read().strip()) / 1000.0
+                                
+                        # Read SATA temperature (requires 'drivetemp' kernel module)
+                        elif name == "drivetemp" and sata_temp == 0.0:
+                            with open(temp_path, "r") as f:
+                                sata_temp = float(f.read().strip()) / 1000.0
+                                
+        except Exception as e:
+            print(f"Error reading hwmon for disk temps: {e}")
+            
+        return round(nvme_temp, 1), round(sata_temp, 1)
 
     @staticmethod
     def get_uptime() -> str:
@@ -362,8 +389,8 @@ class SystemMetricsCollector:
         # 2. CPU Temperature
         cpu_temp = cls.get_cpu_temp(cpu_usage)
 
-        # 3. Disk Temp
-        disk_temp = cls.get_disk_temp(cpu_temp)
+        # 3. Disk Temps (NVMe & SATA)
+        disk_nvme_temp, disk_sata_temp = cls.get_disk_temps()
 
         # 4. Disk Space Usage (NVMe and SATA)
         nvme_path = 'C:\\' if platform.system() == 'Windows' else '/'
@@ -566,7 +593,8 @@ class SystemMetricsCollector:
             device_name=device_name,
             cpu_temp=cpu_temp,
             cpu_usage=cpu_usage,
-            disk_temp=disk_temp,
+            disk_temp=disk_nvme_temp,
+            disk_sata_temp=disk_sata_temp,
             disk_usage_gb=disk_usage_gb,
             disk_total_gb=disk_total_gb,
             disk_sata_usage_gb=disk_sata_usage_gb,

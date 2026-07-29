@@ -5,6 +5,7 @@ export interface SystemMetric {
   cpu_temp: number;
   cpu_usage: number;
   disk_temp: number;
+  disk_sata_temp: number;
   disk_usage_gb: number;
   disk_total_gb: number;
   disk_sata_usage_gb: number;

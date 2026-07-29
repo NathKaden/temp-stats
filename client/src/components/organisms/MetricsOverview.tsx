@@ -359,7 +359,7 @@ export const MetricsOverview = ({ latest }: MetricsOverviewProps) => {
                   <span>SSD SATA</span>
                   {latest && (
                     <span className="text-sm font-semibold text-muted-foreground/55 select-none">
-                      {latest.disk_temp}°C
+                      {latest.disk_sata_temp}°C
                     </span>
                   )}
                 </div>

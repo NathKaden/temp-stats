@@ -10,6 +10,7 @@ class SystemMetricDomain:
         cpu_temp: float = 0.0,
         cpu_usage: float = 0.0,
         disk_temp: float = 0.0,
+        disk_sata_temp: float = 0.0,
         disk_usage_gb: float = 0.0,
         disk_total_gb: float = 0.0,
         disk_sata_usage_gb: float = 0.0,
@@ -31,6 +32,7 @@ class SystemMetricDomain:
         self.cpu_temp = cpu_temp
         self.cpu_usage = cpu_usage
         self.disk_temp = disk_temp
+        self.disk_sata_temp = disk_sata_temp
         self.disk_usage_gb = disk_usage_gb
         self.disk_total_gb = disk_total_gb
         self.disk_sata_usage_gb = disk_sata_usage_gb

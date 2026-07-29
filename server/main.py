@@ -24,8 +24,21 @@ try:
             inspector = inspect(engine)
             if inspector.has_table("system_metrics"):
                 columns = [c["name"] for c in inspector.get_columns("system_metrics")]
-                if "disk_sata_usage_gb" not in columns or "disk_services_json" not in columns or "cpu_name" not in columns or "ram_services_json" not in columns:
-                    print("Schema mismatch: columns missing. Re-creating SQLite database...")
+                
+                # Check for the newest column
+                if "disk_sata_temp" not in columns:
+                    print("Safe Migration: Adding missing disk_sata_temp column to SQLite database...")
+                    try:
+                        with engine.begin() as conn:
+                            from sqlalchemy import text
+                            conn.execute(text("ALTER TABLE system_metrics ADD COLUMN disk_sata_temp FLOAT DEFAULT 0.0;"))
+                        print("Migration completed successfully.")
+                    except Exception as alt_err:
+                        print(f"Could not alter table: {alt_err}")
+                
+                # Fallback for older missing columns that trigger a rebuild
+                elif "disk_sata_usage_gb" not in columns or "disk_services_json" not in columns or "cpu_name" not in columns or "ram_services_json" not in columns:
+                    print("Schema mismatch: legacy columns missing. Re-creating SQLite database...")
                     engine.dispose()
                     try:
                         os.remove(db_path)

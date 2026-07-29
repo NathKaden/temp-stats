@@ -11,6 +11,7 @@ class SystemMetric(Base):
     cpu_temp = Column(Float)
     cpu_usage = Column(Float)
     disk_temp = Column(Float)
+    disk_sata_temp = Column(Float, default=0.0)
     disk_usage_gb = Column(Float)
     disk_total_gb = Column(Float)
     disk_sata_usage_gb = Column(Float)
