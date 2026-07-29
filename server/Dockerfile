@@ -2,9 +2,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install Docker CLI to execute docker commands on the host daemon
+# Install Docker CLI to execute docker commands on the host daemon, and smartmontools for disk temps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
+    smartmontools \
     && curl -fsSL https://get.docker.com | sh \
     && apt-get purge -y curl \
     && apt-get autoremove -y \

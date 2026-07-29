@@ -277,6 +277,32 @@ class SystemMetricsCollector:
         except Exception as e:
             print(f"Error reading hwmon for disk temps: {e}")
             
+        # Fallback for SATA: read from smartctl directly if installed and authorized
+        if sata_temp == 0.0:
+            import subprocess
+            try:
+                for dev in ["/dev/sda", "/dev/sdb", "/dev/sdc"]:
+                    if not os.path.exists(dev):
+                        continue
+                    
+                    # Try with '-d sat' for USB-SATA bridges
+                    result = subprocess.run(["smartctl", "-A", "-d", "sat", dev], capture_output=True, text=True)
+                    if result.returncode == 0:
+                        for line in result.stdout.splitlines():
+                            # Look for standard SMART temperature attributes
+                            if "Temperature_Celsius" in line or "Airflow_Temperature_Cel" in line:
+                                parts = line.split()
+                                if len(parts) >= 10:
+                                    try:
+                                        sata_temp = float(parts[9])
+                                        break
+                                    except ValueError:
+                                        continue
+                    if sata_temp > 0.0:
+                        break
+            except Exception as e:
+                print(f"Error reading SATA fallback with smartctl: {e}")
+            
         return round(nvme_temp, 1), round(sata_temp, 1)
 
     @staticmethod
