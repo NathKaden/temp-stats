@@ -291,14 +291,14 @@ class BackupManager:
         # Sort folders by name descending (newest first)
         folders.sort(key=lambda x: x[0], reverse=True)
 
-        # Define limits
+        # Define limits from environment variables with safe defaults
         limit = 3
         if service == "nextcloud":
-            limit = 1  # Keep only the latest 1 backup of Nextcloud due to 120GB SSD limit
+            limit = int(os.environ.get("MAX_BACKUPS_NEXTCLOUD", 1))
         elif service == "minecraft":
-            limit = 3  # Keep latest 3 backups
+            limit = int(os.environ.get("MAX_BACKUPS_MINECRAFT", 3))
         elif service == "outline":
-            limit = 5  # Keep latest 5 backups
+            limit = int(os.environ.get("MAX_BACKUPS_OUTLINE", 5))
 
         # Delete folders exceeding the limit
         if len(folders) > limit:

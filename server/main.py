@@ -119,14 +119,8 @@ async def backup_worker():
                     latest_date = datetime.fromisoformat(latest["date"])
                     diff_seconds = (datetime.utcnow() - latest_date).total_seconds()
                     
-                    # Catch-up check: if the latest Nextcloud backup folder size is suspiciously small
-                    # (e.g. less than 10MB) despite having media files, it means it's a legacy backup
-                    # from before the fix. We trigger a fresh backup immediately.
-                    if service == "nextcloud" and latest["size_bytes"] < 10 * 1024 * 1024:
-                        print(f"Latest Nextcloud backup is too small ({latest['size_bytes']} bytes), likely legacy. Triggering fresh backup...")
-                        needs_backup = True
                     # 7 days = 604800 seconds
-                    elif diff_seconds >= 604800:
+                    if diff_seconds >= 604800:
                         print(f"Latest backup for {service} is {diff_seconds / 3600:.1f} hours old. Triggering scheduled backup...")
                         needs_backup = True
                 

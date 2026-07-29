@@ -212,8 +212,8 @@ export const DashboardTemplate = ({
         <div 
           className="w-full max-w-[320px] px-2 py-2 rounded-3xl border border-white/5 shadow-[0_8px_32px_rgba(0,0,0,0.5)]"
           style={{
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
             backgroundColor: "rgba(9, 9, 11, 0.22)"
           }}
         >
