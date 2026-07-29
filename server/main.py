@@ -67,12 +67,12 @@ async def cron_worker():
     
     while True:
         try:
-            await asyncio.sleep(settings.COLLECTION_INTERVAL_SECONDS)
             db = SessionLocal()
             use_cases = MetricsUseCases(db)
             print("Scheduled capture: collecting system metrics...")
             await asyncio.to_thread(use_cases.collect_and_save)
             db.close()
+            await asyncio.sleep(settings.COLLECTION_INTERVAL_SECONDS)
         except asyncio.CancelledError:
             print("Cron worker background task cancelled.")
             break
