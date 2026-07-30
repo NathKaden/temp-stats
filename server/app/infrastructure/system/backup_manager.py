@@ -107,17 +107,20 @@ class BackupManager:
 
         self._active_backups.add(service)
 
-        # 1. Create a DB log entry with status 'running'
+        # 1. Capture the exact timestamp for both DB and folder name
+        now = datetime.utcnow()
+        timestamp_str = now.strftime("%Y%m%d_%H%M%S")
+
+        # 2. Create a DB log entry with status 'running'
         log_domain = BackupLogDomain(
             service=service,
             status="running",
-            timestamp=datetime.utcnow()
+            timestamp=now
         )
         db_log = self.repo.add(log_domain)
         log_id = db_log.id
 
-        # Create timestamp and target folder path
-        timestamp_str = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        # Create target folder path
         target_dir = os.path.join(self.backup_root, service, timestamp_str)
 
         try:
