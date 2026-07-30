@@ -14,6 +14,10 @@ class MetricsUseCases:
         db_metric = self.repository.add(metric_domain)
         return db_metric
 
+    def collect_live(self):
+        # Collect live system metrics without saving to DB
+        return SystemMetricsCollector.collect()
+
     def get_latest(self):
         return self.repository.get_latest()
 

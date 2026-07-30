@@ -132,8 +132,8 @@ async def backup_worker():
                     latest_date = datetime.fromisoformat(latest["date"])
                     diff_seconds = (datetime.utcnow() - latest_date).total_seconds()
                     
-                    # 7 days = 604800 seconds
-                    if diff_seconds >= 604800:
+                    # Check against the age threshold from settings
+                    if diff_seconds >= settings.BACKUP_AGE_THRESHOLD_SECONDS:
                         print(f"Latest backup for {service} is {diff_seconds / 3600:.1f} hours old. Triggering scheduled backup...")
                         needs_backup = True
                 
@@ -146,8 +146,8 @@ async def backup_worker():
             print(f"Error inside background backup worker: {e}")
             
         try:
-            # Check backups once every hour (3600 seconds)
-            await asyncio.sleep(3600)
+            # Check backups based on the configured interval
+            await asyncio.sleep(settings.BACKUP_CHECK_INTERVAL_SECONDS)
         except asyncio.CancelledError:
             print("Backup worker background task cancelled.")
             break

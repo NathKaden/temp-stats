@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     # Cron interval in seconds (default is 1 hour = 3600 seconds)
     COLLECTION_INTERVAL_SECONDS: int = int(os.getenv("COLLECTION_INTERVAL_SECONDS", "3600"))
 
+    # Backup schedule
+    BACKUP_CHECK_INTERVAL_SECONDS: int = int(os.getenv("BACKUP_CHECK_INTERVAL_SECONDS", "3600"))
+    BACKUP_AGE_THRESHOLD_SECONDS: int = int(os.getenv("BACKUP_AGE_THRESHOLD_SECONDS", "604800"))
+
     # Minecraft Server settings
     MINECRAFT_HOST: str = os.getenv("MINECRAFT_HOST", "minecraft-paper")
     MINECRAFT_PORT: int = int(os.getenv("MINECRAFT_PORT", "25565"))

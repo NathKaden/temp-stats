@@ -27,7 +27,7 @@ class SystemMetricCreate(SystemMetricBase):
     pass
 
 class SystemMetric(SystemMetricBase):
-    id: int
+    id: int = 0
     timestamp: datetime
 
     class Config:

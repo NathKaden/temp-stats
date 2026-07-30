@@ -11,12 +11,8 @@ services:
       - /mnt/backup:/mnt/backup
       - /opt:/opt:ro
       - /sys:/sys:ro
-      - /dev:/dev:ro
       - /proc:/host/proc:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    cap_add:
-      - SYS_RAWIO
-      - SYS_ADMIN
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
       - COLLECTION_INTERVAL_SECONDS=${COLLECTION_INTERVAL_SECONDS:-3600}

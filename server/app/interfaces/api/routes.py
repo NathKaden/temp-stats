@@ -48,15 +48,17 @@ def read_metrics(limit: int = 100, db: Session = Depends(get_db)):
 @router.get("/metrics/latest", response_model=schemas.SystemMetric)
 def read_latest_metric(db: Session = Depends(get_db)):
     use_cases = MetricsUseCases(db)
-    metric = use_cases.get_latest()
-    if metric is not None:
-        return metric
     
-    # Fallback to run a live collect & save only if the database is empty (e.g. on first startup)
+    # Try to return live collected metrics directly
     try:
-        return use_cases.collect_and_save()
+        return use_cases.collect_live()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"No metrics in database, and failed to collect initial metrics: {str(e)}")
+        # Fallback to last known state from DB if live collection fails
+        metric = use_cases.get_latest()
+        if metric is not None:
+            return metric
+        
+        raise HTTPException(status_code=500, detail=f"Failed to collect live metrics and no metrics in database: {str(e)}")
 
 @router.post("/metrics/collect", response_model=schemas.SystemMetric)
 def force_collect(db: Session = Depends(get_db), api_key: str = Depends(verify_api_key)):

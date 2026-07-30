@@ -120,6 +120,9 @@ class BackupManager:
         db_log = self.repo.add(log_domain)
         log_id = db_log.id
 
+        # 3. Free up space BEFORE creating the new backup (if limit is reached)
+        self._cleanup_old_backups(service, reserve_space=True)
+
         # Create target folder path
         target_dir = os.path.join(self.backup_root, service, timestamp_str)
 
@@ -143,16 +146,16 @@ class BackupManager:
                     size_bytes += os.path.getsize(fp)
                     files.append(f)
 
-            # 4. Clean up older backups (keep last 30 days)
-            self._cleanup_old_backups(service)
-
-            # 5. Update DB log to 'success'
+            # 4. Update DB log to 'success'
             self.repo.update(
                 log_id=log_id,
                 status="success",
                 size_bytes=size_bytes,
                 files_json=json.dumps(files)
             )
+
+            # 5. Clean up older backups (keep limit)
+            self._cleanup_old_backups(service)
 
             return {
                 "status": "success",
@@ -255,7 +258,7 @@ class BackupManager:
             # 3. Tell Minecraft to save-on
             subprocess.run(["docker", "exec", "minecraft-paper", "rcon-cli", "save-on"], capture_output=True, text=True)
 
-    def _cleanup_old_backups(self, service: str):
+    def _cleanup_old_backups(self, service: str, reserve_space: bool = False):
         """Keeps only a fixed number of recent backups to prevent disk saturation on small drives."""
         service_dir = os.path.join(self.backup_root, service)
         if not os.path.exists(service_dir):
@@ -302,6 +305,9 @@ class BackupManager:
             limit = int(os.environ.get("MAX_BACKUPS_MINECRAFT", 3))
         elif service == "outline":
             limit = int(os.environ.get("MAX_BACKUPS_OUTLINE", 5))
+
+        if reserve_space:
+            limit = max(0, limit - 1)
 
         # Delete folders exceeding the limit
         if len(folders) > limit:
