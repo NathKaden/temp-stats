@@ -185,11 +185,6 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
                 </span>
                 {renderPingBars(status.latency_ms)}
               </div>
-              {status.online && status.version && (
-                <span className="text-[9px] text-zinc-500 font-medium px-1.5 py-0.5 bg-zinc-900/80 border border-white/5 rounded-sm uppercase tracking-wider">
-                  {status.version}
-                </span>
-              )}
             </div>
           </div>
 
