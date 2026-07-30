@@ -27,7 +27,7 @@ class SystemMetricCreate(SystemMetricBase):
     pass
 
 class SystemMetric(SystemMetricBase):
-    id: int = 0
+    id: Optional[int] = 0
     timestamp: datetime
 
     class Config:
@@ -41,6 +41,7 @@ class MinecraftStatus(BaseModel):
     players_list: List[str] = []
     latency_ms: Optional[float] = None
     motd: Optional[str] = None
+    favicon: Optional[str] = None
     logs: List[str] = []
 
 

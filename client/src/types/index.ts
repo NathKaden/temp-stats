@@ -30,6 +30,7 @@ export interface MinecraftStatus {
   players_list: string[];
   latency_ms: number | null;
   motd: string | null;
+  favicon: string | null;
   logs: string[];
 }
 export interface BackupItem {

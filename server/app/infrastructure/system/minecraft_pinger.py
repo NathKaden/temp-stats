@@ -83,7 +83,8 @@ class MinecraftPinger:
                 "players_max": players_data.get('max', 0),
                 "players_list": players_list,
                 "latency_ms": latency_ms,
-                "motd": description
+                "motd": description,
+                "favicon": response.get('favicon')
             }
         except Exception as e:
             return {
@@ -94,6 +95,7 @@ class MinecraftPinger:
                 "players_list": [],
                 "latency_ms": None,
                 "motd": None,
+                "favicon": None,
                 "error": str(e)
             }
         finally:

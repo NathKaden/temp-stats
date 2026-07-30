@@ -110,6 +110,28 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
     return line.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  const renderPingBars = (ping: number | null) => {
+    let bars = 0;
+    if (ping !== null) {
+      if (ping < 150) bars = 4;
+      else if (ping < 300) bars = 3;
+      else if (ping < 600) bars = 2;
+      else bars = 1;
+    }
+    
+    return (
+      <div className="flex items-end gap-[2px] h-4 pb-[1px]" title={ping !== null ? `${ping} ms` : 'Offline'}>
+        {[1, 2, 3, 4].map(i => (
+          <div 
+            key={i} 
+            className={`w-[3px] rounded-sm transition-colors ${i <= bars ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-zinc-700/50"}`} 
+            style={{ height: `${(i / 4) * 100}%` }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   const playPauseButton = (
     <button
       onClick={() => setIsPaused(!isPaused)}
@@ -125,7 +147,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
   );
 
   return (
-    <div className="grid gap-6 grid-cols-1 xl:grid-cols-3">
+    <div className="grid gap-6 grid-cols-1 xl:grid-cols-3 xl:h-[75vh] min-h-[500px]">
       {/* LEFT COLUMN: Status and Players list */}
       <div className="xl:col-span-1 flex flex-col gap-6">
         
@@ -137,25 +159,43 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               backgroundColor: status.online ? "rgba(16, 185, 129, 0.12)" : "rgba(239, 68, 68, 0.12)" 
             }}
           />
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className={`p-2.5 rounded-xl border ${
-                status.online 
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                  : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-              }`}>
-                <Sword className="h-6 w-6" />
+          <div className="flex items-start gap-4 mb-3 bg-black/40 p-3 rounded-xl border border-white/5 shadow-inner">
+            {/* Server Icon */}
+            <div className="w-16 h-16 shrink-0 bg-black/60 border border-white/10 rounded-md overflow-hidden flex items-center justify-center">
+              {status.favicon ? (
+                <img src={status.favicon} alt="Server Icon" className="w-full h-full object-cover" />
+              ) : (
+                <Sword className="h-8 w-8 text-zinc-600" />
+              )}
+            </div>
+            
+            {/* Middle: Title & MOTD */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
+              <h3 className="font-bold text-base text-foreground/90 truncate leading-tight mb-1">Minecraft server</h3>
+              <div className="text-xs font-mono text-zinc-300 whitespace-pre-wrap break-words line-clamp-2">
+                {status.motd || "A Minecraft Server"}
               </div>
-              <div>
-                <h3 className="font-bold text-lg text-foreground/90 leading-tight">Minecraft</h3>
-                <span className="text-xs text-muted-foreground/60">Paper</span>
+            </div>
+
+            {/* Right: Players & Ping */}
+            <div className="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[11px] font-bold text-zinc-400">
+                  {status.players_online} <span className="font-normal text-zinc-600">/</span> {status.players_max}
+                </span>
+                {renderPingBars(status.latency_ms)}
               </div>
+              {status.online && status.version && (
+                <span className="text-[9px] text-zinc-500 font-medium px-1.5 py-0.5 bg-zinc-900/80 border border-white/5 rounded-sm uppercase tracking-wider">
+                  {status.version}
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="bg-black/20 border border-white/5 rounded-xl py-1">
             {/* Status indicator */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+            <div className="flex items-center justify-between py-2 px-3">
               <span className="text-xs font-semibold text-muted-foreground/50">Statut</span>
               <div className="flex items-center gap-2">
                 <span className={`h-2 w-2 rounded-full ${status.online ? "bg-emerald-400 animate-pulse" : "bg-rose-500 animate-pulse"}`} />
@@ -166,7 +206,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
             </div>
 
             {/* Version */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+            <div className="flex items-center justify-between py-2 px-3">
               <span className="text-xs font-semibold text-muted-foreground/50">Version</span>
               <span className="text-sm font-medium text-foreground/80 font-mono">
                 {status.online && status.version ? status.version : "--"}
@@ -174,23 +214,13 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
             </div>
 
             {/* Latency */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
+            <div className="flex items-center justify-between py-2 px-3">
               <span className="text-xs font-semibold text-muted-foreground/50">Latence</span>
               <div className="flex items-center gap-1.5 text-sm font-medium text-foreground/80 font-mono">
                 <Wifi className="h-3.5 w-3.5 text-muted-foreground/45" />
                 <span>{status.online && status.latency_ms !== null ? `${status.latency_ms} ms` : "--"}</span>
               </div>
             </div>
-
-            {/* MOTD */}
-            {status.online && status.motd && (
-              <div className="p-3 rounded-xl bg-black/20 border border-white/5">
-                <span className="block text-[10px] font-semibold text-muted-foreground/40 mb-1">MOTD</span>
-                <span className="text-xs font-mono text-zinc-300 leading-relaxed block break-all whitespace-pre-wrap">
-                  {status.motd}
-                </span>
-              </div>
-            )}
           </div>
         </Card>
 
@@ -201,8 +231,8 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               <Users className="h-4 w-4 text-violet-400" />
               <span>Joueurs connectés</span>
             </div>
-            <span className="text-xs font-mono font-bold bg-violet-500/10 text-violet-300 border border-violet-500/20 px-2 py-0.5 rounded-lg">
-              {status.players_online} / {status.players_max}
+            <span className="text-[11px] font-bold text-zinc-400">
+              {status.players_online} <span className="font-normal text-zinc-600">/</span> {status.players_max}
             </span>
           </div>
 
