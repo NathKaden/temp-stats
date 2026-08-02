@@ -267,7 +267,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
       {/* Disks SSD Section */}
       <div className="flex flex-col gap-4">
         <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Stockage</h2>
-        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
 
           {/* NVMe SSD Service breakdown Donut Card */}
           <Card className="relative overflow-hidden glass-card-blended ring-0 bg-card/40 shadow-xl backdrop-blur-xl transition-shadow duration-150 ease-out hover:shadow-[0_0_20px_rgba(249,74,41,0.12)] group p-5">
