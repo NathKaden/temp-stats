@@ -87,7 +87,7 @@ export default function Home() {
         setActiveTab(savedTab as any);
       }
 
-      await fetchLatestData();
+      await Promise.all([fetchLatestData(), fetchBackupsData()]);
       setLoading(false);
     };
     init();
@@ -113,7 +113,6 @@ export default function Home() {
     }
   }, [activeTab, isMounted]);
 
-  // Poll for data: poll latest every 5s, poll history every 30s if on history/logs tab, poll minecraft every 5s if active
   // Poll for data: poll latest every 5s, poll history every 30s if on history tab, poll minecraft every 5s if active
   useEffect(() => {
     if (isMounted) {
@@ -217,7 +216,7 @@ export default function Home() {
     <DashboardTemplate
       title={Title}
       refreshButton={null}
-      overview={<MetricsOverview latest={latest} />}
+      overview={<MetricsOverview latest={latest} backupsStatus={backupsStatus} />}
       services={<ServicesSection latest={latest} />}
       charts={<HistorySection history={history} timeRange={timeRange} />}
       table={<DataTable data={history} />}

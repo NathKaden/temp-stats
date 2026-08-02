@@ -105,8 +105,9 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
     );
   };
 
-  // Filter logs based on search term
+  // Filter logs based on search term and hide 'issued server command'
   const filteredLogs = pausedLogs.filter((line) => {
+    if (line.toLowerCase().includes("issued server command")) return false;
     return line.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
@@ -171,7 +172,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
             
             {/* Middle: Title & MOTD */}
             <div className="flex-1 min-w-0 flex flex-col justify-center py-0.5">
-              <h3 className="font-bold text-base text-foreground/90 truncate leading-tight mb-1">Minecraft server</h3>
+              <h3 className="font-bold font-mono text-base text-foreground/90 truncate leading-tight mb-1">Minecraft Server</h3>
               <div className="text-xs font-mono text-zinc-300 whitespace-pre-wrap break-words line-clamp-2">
                 {status.motd || "A Minecraft Server"}
               </div>
@@ -180,7 +181,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
             {/* Right: Players & Ping */}
             <div className="flex flex-col items-end gap-1.5 shrink-0 pt-0.5">
               <div className="flex items-center gap-2.5">
-                <span className="text-[11px] font-bold text-zinc-400">
+                <span className="text-[11px] font-bold font-mono text-zinc-400">
                   {status.players_online} <span className="font-normal text-zinc-600">/</span> {status.players_max}
                 </span>
                 {renderPingBars(status.latency_ms)}
@@ -226,7 +227,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               <Users className="h-4 w-4 text-violet-400" />
               <span>Joueurs connectés</span>
             </div>
-            <span className="text-[11px] font-bold text-zinc-400">
+            <span className="text-[11px] font-bold font-mono text-zinc-400">
               {status.players_online} <span className="font-normal text-zinc-600">/</span> {status.players_max}
             </span>
           </div>

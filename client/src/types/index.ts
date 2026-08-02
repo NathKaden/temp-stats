@@ -40,9 +40,16 @@ export interface BackupItem {
   files: string[];
 }
 
+export interface BackupDbStatus {
+  status: string;
+  timestamp: string | null;
+  error_message: string | null;
+}
+
 export interface BackupServiceStatus {
   latest_backup: BackupItem | null;
   total_backups_count: number;
+  db_status?: BackupDbStatus | null;
 }
 
 export interface BackupsStatusResponse {

@@ -101,7 +101,7 @@ class MinecraftPinger:
         finally:
             sock.close()
 
-    def get_logs(self, max_lines: int = 50) -> List[str]:
+    def get_logs(self, max_lines: int = 100) -> List[str]:
         path_to_read = self.log_path
         if not os.path.exists(path_to_read):
             # Try a default relative path or check dev environment fallback
@@ -112,8 +112,20 @@ class MinecraftPinger:
                 return [f"Minecraft log file not found at {self.log_path}"]
 
         try:
+            # Read a larger buffer (e.g. 500 lines) to account for filtered out commands and empty lines
             with open(path_to_read, "r", encoding="utf-8", errors="ignore") as f:
-                lines = deque(f, max_lines)
-                return [line.strip() for line in lines]
+                raw_lines = deque(f, 500)
+                filtered_lines = []
+                for line in raw_lines:
+                    cleaned = line.strip()
+                    if not cleaned:
+                        continue
+                    # Hide 'issued server command' logs as requested
+                    if "issued server command" in cleaned.lower():
+                        continue
+                    filtered_lines.append(cleaned)
+                
+                # Return the last max_lines
+                return filtered_lines[-max_lines:]
         except Exception as e:
             return [f"Error reading log file: {str(e)}"]

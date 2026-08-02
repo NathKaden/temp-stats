@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   Sword, Cloud, BookOpen, Database, Calendar, HardDrive, 
-  RefreshCw, CheckCircle2, XCircle, AlertCircle, FileArchive, Loader2 
+  CheckCircle2, XCircle, AlertCircle, FileArchive, Loader2 
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { backupsService } from "@/services/api";
@@ -41,15 +41,30 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
 
   const formatSize = (bytes: number) => {
     if (bytes <= 0) return "--";
-    const k = 1024;
-    const sizes = ["Octets", "Ko", "Mo", "Go", "To"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    const gb = bytes / (1024 ** 3);
+    if (gb >= 0.1) {
+      return `${gb.toFixed(2)} Go`;
+    }
+    const mb = bytes / (1024 ** 2);
+    return `${mb.toFixed(1)} Mo`;
+  };
+
+  const formatGbAndPercent = (bytes: number, totalBackupsCount: number = 1, sataTotalGb: number = 480.0) => {
+    if (bytes <= 0) return "--";
+    const totalBytes = bytes * totalBackupsCount;
+    const gb = totalBytes / (1024 ** 3);
+    const pct = (gb / sataTotalGb) * 100;
+    const pctStr = pct < 0.1 ? "< 0.1%" : `${pct.toFixed(1)}%`;
+    
+    if (gb >= 0.1) {
+      return `${gb.toFixed(1)} Go (${pctStr})`;
+    }
+    const mb = totalBytes / (1024 ** 2);
+    return `${mb.toFixed(0)} Mo (${pctStr})`;
   };
 
   const formatDate = (isoStr: string) => {
     try {
-      // Append 'Z' to treat naive ISO string as UTC if no timezone suffix is present
       const normalizedStr = (isoStr.endsWith("Z") || isoStr.includes("+") || isoStr.includes("-", 10))
         ? isoStr
         : isoStr + "Z";
@@ -129,6 +144,7 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
         {services.map(srv => {
           const cfg = getServiceConfig(srv);
           const srvStatus = status ? status[srv as keyof BackupsStatusResponse] : null;
+          const isRunning = srvStatus?.db_status?.status === "running";
           
           return (
             <Card 
@@ -138,13 +154,22 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
             >
               <div>
                 {/* Header block */}
-                <div className="flex items-center gap-3.5 mb-6">
-                  <div className={`p-3 rounded-2xl ${cfg.bg}`}>
-                    {cfg.icon}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3.5">
+                    <div className={`p-3 rounded-2xl ${cfg.bg}`}>
+                      {cfg.icon}
+                    </div>
+                    <span className="font-poppins text-lg font-bold tracking-wide text-foreground/90 leading-tight">
+                      {cfg.title}
+                    </span>
                   </div>
-                  <span className="font-poppins text-lg font-bold tracking-wide text-foreground/90 leading-tight">
-                    {cfg.title}
-                  </span>
+
+                  {isRunning && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20 animate-pulse">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                      <span>En cours</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Details layout */}
@@ -162,15 +187,15 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
                     </span>
                   </div>
 
-                  {/* Size */}
+                  {/* Size & SATA percentage */}
                   <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/5">
                     <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground/50">
                       <HardDrive className="h-3.5 w-3.5 text-muted-foreground/45" />
-                      <span>Taille</span>
+                      <span>Taille (Part SATA)</span>
                     </div>
                     <span className="text-xs font-bold text-foreground/80 font-mono">
                       {srvStatus?.latest_backup 
-                        ? formatSize(srvStatus.latest_backup.size_bytes)
+                        ? formatGbAndPercent(srvStatus.latest_backup.size_bytes, srvStatus.total_backups_count)
                         : "--"}
                     </span>
                   </div>
@@ -217,7 +242,7 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
                   <th className="px-5 py-3">Date</th>
                   <th className="px-5 py-3">Service</th>
                   <th className="px-5 py-3">Statut</th>
-                  <th className="px-5 py-3">Taille</th>
+                  <th className="px-5 py-3">Taille (Go / %)</th>
                   <th className="px-5 py-3">Fichiers / Erreurs</th>
                 </tr>
               </thead>
@@ -259,7 +284,7 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
                           )}
                         </td>
                         <td className="px-5 py-3.5 font-mono text-zinc-400">
-                          {formatSize(log.size_bytes)}
+                          {formatGbAndPercent(log.size_bytes, 1)}
                         </td>
                         <td className="px-5 py-3.5 max-w-xs sm:max-w-sm truncate text-zinc-400">
                           {log.status === "failed" && log.error_message && (
@@ -274,8 +299,8 @@ export const BackupSection = ({ status, loading }: BackupSectionProps) => {
                             </span>
                           )}
                           {log.status === "running" && (
-                            <span className="italic text-zinc-500 text-[11px]">
-                              Sauvegarde en cours d'exécution...
+                            <span className="italic text-amber-300/80 text-[11px]">
+                              Sauvegarde en cours d'écriture sur le disque SATA...
                             </span>
                           )}
                         </td>
