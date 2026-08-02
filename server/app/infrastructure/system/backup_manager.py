@@ -17,16 +17,45 @@ class BackupManager:
         self.repo = BackupLogsRepository(db)
 
     def get_backup_history(self) -> List[Dict[str, Any]]:
-        """Returns a list of all backup logs from the database."""
+        """Returns a list of all backup logs from the database with progress percentage."""
         logs = self.repo.get_all(limit=50)
+        
+        last_success_sizes = {}
+        for l in logs:
+            if l.status == "success" and l.service not in last_success_sizes and l.size_bytes:
+                last_success_sizes[l.service] = l.size_bytes
+
         result = []
         for log in logs:
+            size_bytes = log.size_bytes or 0
+            progress_pct = 100 if log.status == "success" else 0
+
+            if log.status == "running":
+                try:
+                    if log.timestamp:
+                        folder_str = log.timestamp.strftime("%Y%m%d_%H%M%S")
+                        target_dir = os.path.join(self.backup_root, log.service, folder_str)
+                        if os.path.exists(target_dir):
+                            current_size = 0
+                            for root, dirs, files in os.walk(target_dir):
+                                for f in files:
+                                    current_size += os.path.getsize(os.path.join(root, f))
+                            size_bytes = current_size
+                            ref_size = last_success_sizes.get(log.service, 0)
+                            if ref_size > 0:
+                                progress_pct = min(99, int((current_size / ref_size) * 100))
+                            else:
+                                progress_pct = 50
+                except Exception:
+                    pass
+
             result.append({
                 "id": log.id,
                 "service": log.service,
                 "timestamp": log.timestamp.isoformat() if log.timestamp else None,
                 "status": log.status,
-                "size_bytes": log.size_bytes,
+                "size_bytes": size_bytes,
+                "progress_pct": progress_pct,
                 "files": json.loads(log.files_json) if log.files_json else [],
                 "error_message": log.error_message
             })

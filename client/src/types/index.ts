@@ -64,6 +64,7 @@ export interface BackupLogResponse {
   timestamp: string;
   status: string;
   size_bytes: number;
+  progress_pct?: number;
   files: string[];
   error_message: string | null;
 }

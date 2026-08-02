@@ -66,6 +66,7 @@ class BackupLogResponse(BaseModel):
     timestamp: str
     status: str
     size_bytes: int
+    progress_pct: Optional[int] = 100
     files: List[str]
     error_message: Optional[str] = None
 
