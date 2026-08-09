@@ -20,7 +20,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "NUC Stats Monitor",
+  title: "Stats",
   description: "Monitor your Intel NUC statistics in real-time",
   icons: {
     icon: "https://beskarfox.com/Assets/img/Beskarfox_TW.png",

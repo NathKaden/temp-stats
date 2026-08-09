@@ -43,6 +43,7 @@ class MinecraftStatus(BaseModel):
     motd: Optional[str] = None
     favicon: Optional[str] = None
     logs: List[str] = []
+    uptime: Optional[str] = None
 
 
 class BackupItem(BaseModel):

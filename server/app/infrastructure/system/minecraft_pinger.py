@@ -12,6 +12,21 @@ class MinecraftPinger:
         self.port = port
         self.log_path = log_path
 
+    def get_docker_uptime(self) -> str:
+        import subprocess
+        try:
+            result = subprocess.run(
+                ["docker", "ps", "--filter", "name=minecraft", "--format", "{{.Status}}"],
+                capture_output=True, text=True, timeout=2
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                status = result.stdout.strip().split('\n')[0]
+                if status.startswith("Up "):
+                    return status.replace("Up ", "")
+        except Exception:
+            pass
+        return None
+
     def _read_var_int(self, sock: socket.socket) -> int:
         i = 0
         j = 0
@@ -84,7 +99,8 @@ class MinecraftPinger:
                 "players_list": players_list,
                 "latency_ms": latency_ms,
                 "motd": description,
-                "favicon": response.get('favicon')
+                "favicon": response.get('favicon'),
+                "uptime": self.get_docker_uptime()
             }
         except Exception as e:
             return {
@@ -96,6 +112,7 @@ class MinecraftPinger:
                 "latency_ms": None,
                 "motd": None,
                 "favicon": None,
+                "uptime": None,
                 "error": str(e)
             }
         finally:
@@ -123,6 +140,7 @@ class MinecraftPinger:
                     # Hide 'issued server command' logs as requested
                     if "issued server command" in cleaned.lower():
                         continue
+                    cleaned = cleaned.replace("[Not Secure] ", "")
                     filtered_lines.append(cleaned)
                 
                 # Return the last max_lines

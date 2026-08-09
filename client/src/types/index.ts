@@ -32,6 +32,7 @@ export interface MinecraftStatus {
   motd: string | null;
   favicon: string | null;
   logs: string[];
+  uptime?: string | null;
 }
 export interface BackupItem {
   folder: string;

@@ -201,6 +201,14 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
               </div>
             </div>
 
+            {/* Uptime */}
+            <div className="flex items-center justify-between py-2 px-3">
+              <span className="text-xs font-semibold text-muted-foreground/50">Uptime</span>
+              <span className="text-sm font-medium text-foreground/80 font-mono">
+                {status.online && status.uptime ? status.uptime : "--"}
+              </span>
+            </div>
+
             {/* Version */}
             <div className="flex items-center justify-between py-2 px-3">
               <span className="text-xs font-semibold text-muted-foreground/50">Version</span>
@@ -236,7 +244,7 @@ export const MinecraftSection = ({ status, loading, onRefresh }: MinecraftSectio
           <div className="flex-1 overflow-y-auto max-h-[300px] xl:max-h-[none] space-y-2.5 pr-1.5 custom-scrollbar min-h-[150px]">
             {status.online && status.players_online > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2">
-                {status.players_list.map((player) => (
+                {status.players_list.slice().sort((a, b) => a.localeCompare(b)).map((player) => (
                   <div 
                     key={player}
                     className="flex items-center gap-3 p-2.5 rounded-xl bg-black/10 border border-white/5 hover:border-white/10 hover:bg-black/20 transition-all duration-150"

@@ -47,7 +47,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
         ...serviceItems,
         { name: "Autres", value: autresVal, color: getServiceColor("autres") },
         { name: "Disponible", value: nvmeFree, color: SERVICE_COLORS.disponible }
-      ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
+      ].filter(item => item.name === "Disponible" || (item.name === "Autres" ? item.value >= 0.001 : item.value > 0));
     }
   } catch (e) {
     console.error("Failed to parse disk services JSON:", e);
@@ -62,7 +62,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
       { name: "Stats", value: statsVal, color: getServiceColor("stats") },
       { name: "Autres", value: autresVal, color: getServiceColor("autres") },
       { name: "Disponible", value: nvmeFree, color: SERVICE_COLORS.disponible }
-    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
+    ].filter(item => item.name === "Disponible" || (item.name === "Autres" ? item.value >= 0.001 : item.value > 0));
   }
 
   // 2. Calculate RAM memory breakdown
@@ -99,7 +99,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
         ...serviceItems,
         { name: "Autres", value: autresGb, color: getServiceColor("autres") },
         { name: "Disponible", value: ramFree, color: SERVICE_COLORS.disponible }
-      ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
+      ].filter(item => item.name === "Disponible" || (item.name === "Autres" ? item.value >= 0.001 : item.value > 0));
     }
   } catch (e) {
     console.error("Failed to parse RAM services JSON:", e);
@@ -114,7 +114,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
       { name: "Stats", value: statsValGb, color: getServiceColor("stats") },
       { name: "Autres", value: autresValGb, color: getServiceColor("autres") },
       { name: "Disponible", value: ramFree, color: SERVICE_COLORS.disponible }
-    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
+    ].filter(item => item.name === "Disponible" || (item.name === "Autres" ? item.value >= 0.001 : item.value > 0));
   }
 
   // 3. Calculate SATA SSD Backup breakdown
@@ -147,7 +147,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
       { name: "Outline", value: olGb, color: getServiceColor("outline") },
       { name: "Autres", value: autresSataGb, color: getServiceColor("autres") },
       { name: "Disponible", value: sataFree, color: SERVICE_COLORS.disponible },
-    ].filter(item => item.value > 0 || item.name === "Disponible" || item.name === "Autres");
+    ].filter(item => item.name === "Disponible" || (item.name === "Autres" ? item.value >= 0.001 : item.value > 0));
   } else {
     // Balanced fallback split if backupsStatus is not yet available
     const third = parseFloat((sataUsed / 3).toFixed(1));
@@ -370,11 +370,11 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
                   <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                       <CardTitle className="text-base font-bold tracking-wide text-foreground/90">SSD SATA</CardTitle>
-                      {latest && (
+                      {/* latest && (
                         <span className="text-sm font-semibold text-muted-foreground/55 select-none ml-1">
                           {latest.disk_sata_temp}°C
                         </span>
-                      )}
+                      ) */}
                     </div>
                     <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">Sauvegardes (Backups)</span>
                   </div>
@@ -421,8 +421,8 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
                       data={sataServicesData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={42}
-                      outerRadius={50}
+                      innerRadius={32}
+                      outerRadius={40}
                       startAngle={90}
                       endAngle={-270}
                       paddingAngle={2}
