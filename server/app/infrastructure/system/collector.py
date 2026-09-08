@@ -2,6 +2,7 @@ import os
 import time
 import platform
 import socket
+import re
 from datetime import datetime
 import psutil
 from app.core.config import settings
@@ -13,17 +14,11 @@ class SystemMetricsCollector:
         total_size = 0
         try:
             if os.path.exists(path):
-                count = 0
                 for dirpath, dirnames, filenames in os.walk(path):
                     for f in filenames:
                         fp = os.path.join(dirpath, f)
                         if not os.path.islink(fp):
                             total_size += os.path.getsize(fp)
-                        count += 1
-                        if count > 2000:
-                            break
-                    if count > 2000:
-                        break
         except Exception:
             pass
         return round(total_size / (1024 ** 3), 1)
@@ -478,10 +473,14 @@ class SystemMetricsCollector:
                             size_gb = size_bytes / (1024 ** 3)
                             if size_gb > 0.05:  # more than 50MB
                                 # Try to match to an existing service in services_breakdown (case-insensitive)
+                                # Use max() instead of addition to avoid double-counting when a Docker
+                                # volume is bind-mounted into /opt/<service> (same data measured twice).
                                 matched = False
                                 for key in list(services_breakdown.keys()):
                                     if key.lower() in name.lower() or name.lower() in key.lower():
-                                        services_breakdown[key] = round(services_breakdown.get(key, 0.0) + size_gb, 1)
+                                        services_breakdown[key] = round(
+                                            max(services_breakdown.get(key, 0.0), size_gb), 1
+                                        )
                                         matched = True
                                         break
                                 
@@ -491,7 +490,13 @@ class SystemMetricsCollector:
                                     parts = name.replace('_', '-').split('-')
                                     if parts:
                                         proj = parts[0]
-                                        services_breakdown[proj] = round(services_breakdown.get(proj, 0.0) + size_gb, 1)
+                                        # Skip anonymous Docker volumes (64-char hex hash names)
+                                        # so they don't pollute the breakdown as fake services.
+                                        if re.fullmatch(r"[0-9a-f]{64}", proj):
+                                            continue
+                                        services_breakdown[proj] = round(
+                                            max(services_breakdown.get(proj, 0.0), size_gb), 1
+                                        )
 
                 # Docker images size
                 images = system_df.get("Images", [])
@@ -500,6 +505,14 @@ class SystemMetricsCollector:
                     docker_images_gb = round(total_images_bytes / (1024 ** 3), 1)
                     if docker_images_gb > 0:
                         services_breakdown["Docker Images"] = docker_images_gb
+
+                # Docker build cache size
+                build_cache = system_df.get("BuildCache", [])
+                if build_cache:
+                    total_bc_bytes = sum(b.get("Size", 0) for b in build_cache)
+                    build_cache_gb = round(total_bc_bytes / (1024 ** 3), 1)
+                    if build_cache_gb > 0:
+                        services_breakdown["Docker Cache"] = build_cache_gb
             except Exception:
                 pass
 
@@ -512,7 +525,9 @@ class SystemMetricsCollector:
             "temp-stats": "Stats",
             "stats": "Stats",
             "minecraft": "Minecraft",
-            "traefik": "Traefik"
+            "traefik": "Traefik",
+            "docker images": "Docker Images",
+            "docker cache": "Docker Cache"
         }
         
         grouped_breakdown = {}

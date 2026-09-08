@@ -8,10 +8,17 @@ services:
     volumes:
       - ./server:/app
       - ./server/data:/app/data
+      - /opt:/opt:ro
+      - /sys:/sys:ro
+      - /proc:/host/proc:ro
+      - /mnt/backup:/mnt/backup:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     restart: always
+    networks:
+      - proxy
 
   client:
     build:
@@ -26,8 +33,24 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - BACKEND_API_URL=http://server:8000
+      - BACKEND_API_URL=http://nuc-monitor-server:8000
+      - NODE_ENV=development
     command: npm run dev
     depends_on:
       - server
     restart: always
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.nuc-monitor-client.rule=Host(`dev.beskarfox.com`)"
+      - "traefik.http.routers.nuc-monitor-client.entrypoints=websecure"
+      - "traefik.http.routers.nuc-monitor-client.tls=true"
+      - "traefik.http.routers.nuc-monitor-client-web.rule=Host(`dev.beskarfox.com`)"
+      - "traefik.http.routers.nuc-monitor-client-web.entrypoints=web"
+      - "traefik.http.services.nuc-monitor-client.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
