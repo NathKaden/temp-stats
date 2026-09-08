@@ -25,6 +25,7 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GIT_COMMIT: getGitCommitHash(),
   },
+  allowedDevOrigins: ['dev.beskarfox.com'],
 };
 
 export default nextConfig;
