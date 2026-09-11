@@ -35,6 +35,7 @@ services:
     environment:
       - BACKEND_API_URL=http://nuc-monitor-server:8000
       - NODE_ENV=development
+      - ALLOWED_DEV_ORIGINS=${ALLOWED_DEV_ORIGINS:-dev.beskarfox.com,stats.staging.beskarfox.com,localhost,127.0.0.1}
     command: npm run dev
     depends_on:
       - server
@@ -44,10 +45,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.nuc-monitor-client.rule=Host(`dev.beskarfox.com`)"
+      - "traefik.http.routers.nuc-monitor-client.rule=Host(`${TRAEFIK_CLIENT_HOST:-dev.beskarfox.com}`)"
       - "traefik.http.routers.nuc-monitor-client.entrypoints=websecure"
       - "traefik.http.routers.nuc-monitor-client.tls=true"
-      - "traefik.http.routers.nuc-monitor-client-web.rule=Host(`dev.beskarfox.com`)"
+      - "traefik.http.routers.nuc-monitor-client-web.rule=Host(`${TRAEFIK_CLIENT_HOST:-dev.beskarfox.com}`)"
       - "traefik.http.routers.nuc-monitor-client-web.entrypoints=web"
       - "traefik.http.services.nuc-monitor-client.loadbalancer.server.port=3000"
 
