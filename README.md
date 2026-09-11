@@ -19,6 +19,8 @@ A full-stack monitoring solution for Intel NUC (and other host machines), featur
 3.  Adjust the `API_KEY` and `NEXT_PUBLIC_API_URL` in `.env`. You can also configure:
     - `COLLECTION_INTERVAL_SECONDS`: The interval in seconds for the background cron worker to collect metrics (default is `3600` seconds / 1 hour).
     - `POWER_BASE_W` and `POWER_MAX_W`: Power consumption estimates for your NUC.
+    - `TRAEFIK_CLIENT_HOST`: Hostname used by `docker-compose.dev.yml` (set `stats.staging.beskarfox.com` on staging).
+    - `ALLOWED_DEV_ORIGINS`: Comma-separated hostnames accepted by Next.js dev server.
 4.  Launch the services:
     ```bash
     docker-compose up -d --build
