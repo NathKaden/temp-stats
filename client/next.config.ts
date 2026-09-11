@@ -16,7 +16,7 @@ const getGitCommitHash = () => {
 
   try {
     return execSync("git rev-parse --short HEAD").toString().trim();
-  } catch (e) {
+  } catch {
     return "unknown";
   }
 };
