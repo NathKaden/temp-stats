@@ -120,7 +120,15 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   const unconsumedKeys = Array.from(new Set([
     ...Object.keys(ramUsage).filter(k => !consumedRamKeys.has(k)),
     ...Object.keys(diskUsage).filter(k => !consumedDiskKeys.has(k))
-  ])).filter(key => key.toLowerCase() !== "autres");
+  ])).filter(key => {
+    const lower = key.toLowerCase().trim();
+    return (
+      lower !== "autres" &&
+      lower !== "docker images" &&
+      lower !== "docker cache" &&
+      lower !== "minecraft"
+    );
+  });
 
   const dynamicServices = unconsumedKeys.map((key, index) => {
     const colors = ["blue", "purple", "indigo", "emerald", "orange", "cyan"];

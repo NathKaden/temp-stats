@@ -1,3 +1,4 @@
+name: stats-staging
 services:
   server:
     build: ./server
@@ -9,6 +10,7 @@ services:
       - ./server:/app
       - ./server/data:/app/data
       - /opt:/opt:ro
+      - /usr/share/ollama/.ollama:/usr/share/ollama/.ollama:ro
       - /sys:/sys:ro
       - /proc:/host/proc:ro
       - /mnt/backup:/mnt/backup:ro

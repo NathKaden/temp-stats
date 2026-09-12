@@ -1,3 +1,4 @@
+name: stats-prod
 version: '3.8'
 services:
   server:
@@ -10,6 +11,7 @@ services:
       - ./server-data:/app/data
       - /mnt/backup:/mnt/backup
       - /opt:/opt:ro
+      - /usr/share/ollama/.ollama:/usr/share/ollama/.ollama:ro
       - /sys:/sys:ro
       - /proc:/host/proc:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
