@@ -109,6 +109,8 @@ class SystemMetricsCollector:
         "nextcloud": "Nextcloud",
         "outline": "Outline",
         "stats": "Stats",
+        "stats-staging": "Stats",
+        "stats-prod": "Stats",
         "nuc-stats": "Stats",
         "temp-stats": "Stats",
         "nuc-monitor": "Stats",
