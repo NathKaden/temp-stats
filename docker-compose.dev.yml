@@ -1,24 +1,33 @@
+name: stats-staging
 services:
   server:
     build: ./server
-    container_name: nuc-monitor-server
-    hostname: nuc-box
+    container_name: stats-staging-server
+    hostname: stats-staging-box
     ports:
       - "8001:8000"
     volumes:
       - ./server:/app
       - ./server/data:/app/data
+      - /opt:/opt:ro
+      - /usr/share/ollama/.ollama:/usr/share/ollama/.ollama:ro
+      - /sys:/sys:ro
+      - /proc:/host/proc:ro
+      - /mnt/backup:/mnt/backup:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - API_KEY=${API_KEY:-your-secret-key}
     command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     restart: always
+    networks:
+      - proxy
 
   client:
     build:
       context: ./client
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-    container_name: nuc-monitor-client
+    container_name: stats-staging-client
     ports:
       - "3001:3000"
     volumes:
@@ -26,8 +35,25 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - BACKEND_API_URL=http://server:8000
+      - BACKEND_API_URL=http://stats-staging-server:8000
+      - NODE_ENV=development
+      - ALLOWED_DEV_ORIGINS=${ALLOWED_DEV_ORIGINS:-dev.beskarfox.com,stats.staging.beskarfox.com,localhost,127.0.0.1}
     command: npm run dev
     depends_on:
       - server
     restart: always
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.stats-staging-client.rule=Host(`${TRAEFIK_CLIENT_HOST:-dev.beskarfox.com}`)"
+      - "traefik.http.routers.stats-staging-client.entrypoints=websecure"
+      - "traefik.http.routers.stats-staging-client.tls=true"
+      - "traefik.http.routers.stats-staging-client-web.rule=Host(`${TRAEFIK_CLIENT_HOST:-dev.beskarfox.com}`)"
+      - "traefik.http.routers.stats-staging-client-web.entrypoints=web"
+      - "traefik.http.services.stats-staging-client.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
