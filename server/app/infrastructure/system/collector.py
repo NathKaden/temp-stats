@@ -120,7 +120,11 @@ class SystemMetricsCollector:
         "docker cache": "Docker Cache",
     }
 
-    GENERIC_ENV_NAMES = {"prod", "staging", "dev", "test", "production", "default", "app", "server"}
+    GENERIC_ENV_NAMES = {
+        "prod", "staging", "dev", "test", "production", "default",
+        "app", "server", "db", "database", "data", "storage",
+        "mysql", "mariadb", "postgres", "redis"
+    }
 
     @classmethod
     def resolve_service_name(cls, labels: dict = None, raw_name: str = "", image: str = "") -> str:
@@ -185,7 +189,7 @@ class SystemMetricsCollector:
         if parts:
             base = parts[0]
             return cls.KNOWN_SERVICES.get(base, base.capitalize())
-        return clean_name.capitalize() if clean_name else "Unknown"
+        return "Autres"
 
     @classmethod
     def get_docker_ram_usage(cls) -> str:
@@ -542,6 +546,24 @@ class SystemMetricsCollector:
         system_df = SystemMetricsCollector.query_docker_socket("/system/df")
         if system_df:
             try:
+                # Build volume-to-service mapping from active containers
+                volume_to_service = {}
+                containers = SystemMetricsCollector.query_docker_socket("/containers/json")
+                if containers:
+                    for container in containers:
+                        c_names = container.get("Names", [])
+                        c_name = c_names[0].lstrip('/') if c_names else ""
+                        c_labels = container.get("Labels", {})
+                        c_image = container.get("Image", "")
+                        c_service = cls.resolve_service_name(labels=c_labels, raw_name=c_name, image=c_image)
+
+                        if c_service and c_service != "Autres":
+                            for mount in container.get("Mounts", []):
+                                if mount.get("Type") == "volume":
+                                    v_name = mount.get("Name")
+                                    if v_name:
+                                        volume_to_service[v_name] = c_service
+
                 # Docker volumes sizes
                 volumes = system_df.get("Volumes", [])
                 if volumes:
@@ -557,7 +579,12 @@ class SystemMetricsCollector:
                                     continue
 
                                 vol_labels = vol.get("Labels") or {}
-                                service_display = cls.resolve_service_name(labels=vol_labels, raw_name=name)
+                                service_display = volume_to_service.get(name)
+                                if not service_display:
+                                    service_display = cls.resolve_service_name(labels=vol_labels, raw_name=name)
+
+                                if not service_display or service_display == "Autres":
+                                    continue
 
                                 # Match against existing key in services_breakdown (case-insensitive)
                                 matched_key = None
