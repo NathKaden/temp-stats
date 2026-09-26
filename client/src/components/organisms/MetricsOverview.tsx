@@ -30,9 +30,9 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
         .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
         .forEach(([name, val]) => {
           const value = typeof val === "number" ? val : 0;
-          if (value < 0.101) {
+          if (value < 0.101 && name.toLowerCase() !== "ollama") {
             extraAutresGb += value;
-          } else {
+          } else if (value > 0) {
             const color = getServiceColor(name);
             serviceItems.push({ name, value, color });
           }
@@ -82,9 +82,9 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
         .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
         .forEach(([name, val]) => {
           const value = (typeof val === "number" ? val : 0) / 1024.0;
-          if (value < 0.0976) {
+          if (value < 0.0976 && name.toLowerCase() !== "ollama") {
             extraAutresGb += value;
-          } else {
+          } else if (value > 0) {
             const color = getServiceColor(name);
             serviceItems.push({ name, value, color });
           }

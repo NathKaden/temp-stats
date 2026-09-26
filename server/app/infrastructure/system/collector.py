@@ -273,7 +273,151 @@ class SystemMetricsCollector:
             except Exception:
                 pass
 
+        # 4. Check Ollama memory (runs as a host service outside Docker)
+        if "Ollama" not in ram_usage or ram_usage["Ollama"] == 0.0:
+            ollama_mb = cls.get_ollama_ram_usage()
+            if ollama_mb > 0:
+                ram_usage["Ollama"] = round(ollama_mb, 1)
+
         return json.dumps(ram_usage)
+
+    @classmethod
+    def get_ollama_ram_usage(cls) -> float:
+        """
+        Retrieves RAM usage of Ollama when running natively on the host (outside Docker).
+        Tries scanning /host/proc (mounted in Docker) or /proc (native host),
+        systemd cgroups, and psutil.
+        Returns total usage in Megabytes (MB).
+        """
+        import os
+
+        # 1. Try scanning host processes via /host/proc (Docker volume) or /proc (native host)
+        proc_dir = "/host/proc" if os.path.exists("/host/proc") else "/proc"
+        total_proc_mb = 0.0
+        if os.path.exists(proc_dir):
+            try:
+                for pid in os.listdir(proc_dir):
+                    if not pid.isdigit():
+                        continue
+                    pid_dir = os.path.join(proc_dir, pid)
+                    try:
+                        comm = ""
+                        comm_path = os.path.join(pid_dir, "comm")
+                        if os.path.exists(comm_path):
+                            with open(comm_path, "r", errors="ignore") as f:
+                                comm = f.read().strip().lower()
+
+                        cmd_first = ""
+                        has_runner = False
+                        cmdline_path = os.path.join(pid_dir, "cmdline")
+                        if os.path.exists(cmdline_path):
+                            with open(cmdline_path, "rb") as f:
+                                raw = f.read().decode("utf-8", errors="ignore")
+                                parts = raw.split("\x00")
+                                if parts and parts[0]:
+                                    cmd_first = os.path.basename(parts[0].strip().lower())
+                                if any("ollama_llama_server" in p.lower() for p in parts):
+                                    has_runner = True
+
+                        is_ollama = False
+                        if comm in ("ollama", "ollama_llama_se", "ollama_llama_server") or comm.startswith("ollama"):
+                            is_ollama = True
+                        elif cmd_first in ("ollama", "ollama_llama_server") or cmd_first.startswith("ollama"):
+                            is_ollama = True
+                        elif has_runner:
+                            is_ollama = True
+
+                        if is_ollama:
+                            # Read resident memory (VmRSS) from /status
+                            status_path = os.path.join(pid_dir, "status")
+                            if os.path.exists(status_path):
+                                with open(status_path, "r", errors="ignore") as f:
+                                    for line in f:
+                                        if line.startswith("VmRSS:"):
+                                            parts = line.split()
+                                            if len(parts) >= 2:
+                                                total_proc_mb += float(parts[1]) / 1024.0
+                                            break
+                    except (IOError, OSError, ValueError, FileNotFoundError):
+                        continue
+            except Exception:
+                pass
+
+        if total_proc_mb > 0:
+            return round(total_proc_mb, 1)
+
+        # 2. Try systemd cgroups v2 / v1
+        cgroup_paths_v2 = [
+            "/sys/fs/cgroup/system.slice/ollama.service/memory.current",
+            "/sys/fs/cgroup/system.slice/system-ollama.slice/memory.current",
+            "/sys/fs/cgroup/ollama.service/memory.current",
+        ]
+        for p in cgroup_paths_v2:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r") as f:
+                        val = float(f.read().strip())
+                        mb = val / (1024.0 * 1024.0)
+                        if mb > 0:
+                            return round(mb, 1)
+                except Exception:
+                    pass
+
+        cgroup_paths_v1 = [
+            "/sys/fs/cgroup/memory/system.slice/ollama.service/memory.usage_in_bytes",
+            "/sys/fs/cgroup/memory/ollama.service/memory.usage_in_bytes",
+        ]
+        for p in cgroup_paths_v1:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r") as f:
+                        val = float(f.read().strip())
+                        mb = val / (1024.0 * 1024.0)
+                        if mb > 0:
+                            return round(mb, 1)
+                except Exception:
+                    pass
+
+        # 3. Fallback to Ollama local REST API if reachable
+        try:
+            import urllib.request
+            import json
+            req = urllib.request.Request("http://127.0.0.1:11434/api/ps")
+            with urllib.request.urlopen(req, timeout=0.5) as resp:
+                if resp.status == 200:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    models = data.get("models", [])
+                    total_bytes = sum(m.get("size", 0) for m in models)
+                    if total_bytes > 0:
+                        return round(total_bytes / (1024.0 * 1024.0), 1)
+        except Exception:
+            pass
+
+        # 4. Fallback to psutil if available and running on host
+        try:
+            import psutil
+            psutil_mb = 0.0
+            for proc in psutil.process_iter(['name', 'cmdline', 'memory_info']):
+                try:
+                    p_name = (proc.info.get('name') or '').lower()
+                    p_cmd = proc.info.get('cmdline') or []
+                    p_bin = os.path.basename(p_cmd[0].lower()) if p_cmd else ''
+                    if (
+                        p_name.startswith('ollama')
+                        or p_bin.startswith('ollama')
+                        or any('ollama_llama_server' in a.lower() for a in p_cmd)
+                    ):
+                        mem = proc.info.get('memory_info')
+                        if mem and hasattr(mem, 'rss'):
+                            psutil_mb += mem.rss / (1024.0 * 1024.0)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+            if psutil_mb > 0:
+                return round(psutil_mb, 1)
+        except Exception:
+            pass
+
+        return 0.0
 
     @staticmethod
     def get_hostname() -> str:
