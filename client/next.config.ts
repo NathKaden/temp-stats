@@ -16,15 +16,27 @@ const getGitCommitHash = () => {
 
   try {
     return execSync("git rev-parse --short HEAD").toString().trim();
-  } catch (e) {
+  } catch {
     return "unknown";
   }
+};
+
+const parseAllowedDevOrigins = () => {
+  const defaults = ["dev.beskarfox.com", "stats.staging.beskarfox.com", "localhost", "127.0.0.1"];
+  const fromEnv = (process.env.ALLOWED_DEV_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set([...defaults, ...fromEnv]));
 };
 
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GIT_COMMIT: getGitCommitHash(),
   },
+  allowedDevOrigins: parseAllowedDevOrigins(),
 };
 
 export default nextConfig;
+

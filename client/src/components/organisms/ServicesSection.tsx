@@ -120,7 +120,15 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
   const unconsumedKeys = Array.from(new Set([
     ...Object.keys(ramUsage).filter(k => !consumedRamKeys.has(k)),
     ...Object.keys(diskUsage).filter(k => !consumedDiskKeys.has(k))
-  ])).filter(key => key.toLowerCase() !== "autres");
+  ])).filter(key => {
+    const lower = key.toLowerCase().trim();
+    return (
+      lower !== "autres" &&
+      lower !== "docker images" &&
+      lower !== "docker cache" &&
+      lower !== "minecraft"
+    );
+  });
 
   const dynamicServices = unconsumedKeys.map((key, index) => {
     const colors = ["blue", "purple", "indigo", "emerald", "orange", "cyan"];
@@ -133,17 +141,20 @@ export const ServicesSection = ({ latest }: ServicesSectionProps) => {
       emerald: { glow: "rgba(16, 185, 129, 0.12)", bg: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" },
       orange: { glow: "rgba(249, 74, 41, 0.12)", bg: "bg-orange-500/10 text-orange-400 border border-orange-500/20" },
       cyan: { glow: "rgba(6, 182, 212, 0.12)", bg: "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20" },
+      amber: { glow: "rgba(245, 158, 11, 0.12)", bg: "bg-amber-500/10 text-amber-400 border border-amber-500/20" },
     };
-    const mapped = colorMaps[color] || colorMaps.blue;
+    const isOllama = key.toLowerCase() === "ollama";
+    const serviceColor = isOllama ? "amber" : color;
+    const mapped = colorMaps[serviceColor] || colorMaps.blue;
 
     return {
       name: key,
       key: key,
-      description: "Conteneur Docker / Service",
+      description: isOllama ? "Service IA local" : "Conteneur Docker / Service",
       url: "",
       displayUrl: "",
-      icon: <Cloud className="h-6 w-6" />,
-      color: color,
+      icon: isOllama ? <Cpu className="h-6 w-6" /> : <Cloud className="h-6 w-6" />,
+      color: serviceColor,
       glowColor: mapped.glow,
       iconBg: mapped.bg,
       hasMetrics: true,

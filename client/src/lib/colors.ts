@@ -6,6 +6,7 @@ export const SERVICE_COLORS: Record<string, string> = {
   stats: "#a855f7",       // Purple
   minecraft: "#22c55e",   // Green
   outline: "#6366f1",     // Indigo
+  ollama: "#f59e0b",      // Amber
   autres: "#f94a29",      // Reddish Orange
   disponible: "rgba(255, 255, 255, 0.1)",
 };

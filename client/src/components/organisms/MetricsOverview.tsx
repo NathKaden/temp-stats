@@ -30,9 +30,9 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
         .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
         .forEach(([name, val]) => {
           const value = typeof val === "number" ? val : 0;
-          if (value < 0.101) {
+          if (value < 0.101 && name.toLowerCase() !== "ollama") {
             extraAutresGb += value;
-          } else {
+          } else if (value > 0) {
             const color = getServiceColor(name);
             serviceItems.push({ name, value, color });
           }
@@ -82,9 +82,9 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
         .filter(([name]) => name.toLowerCase() !== "autres" && name.toLowerCase() !== "disponible")
         .forEach(([name, val]) => {
           const value = (typeof val === "number" ? val : 0) / 1024.0;
-          if (value < 0.0976) {
+          if (value < 0.0976 && name.toLowerCase() !== "ollama") {
             extraAutresGb += value;
-          } else {
+          } else if (value > 0) {
             const color = getServiceColor(name);
             serviceItems.push({ name, value, color });
           }
@@ -376,7 +376,7 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
                         </span>
                       ) */}
                     </div>
-                    <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">Sauvegardes (Backups)</span>
+                    <span className="text-sm text-muted-foreground/55 font-semibold -mt-0.5">Backups</span>
                   </div>
                 </div>
 
@@ -439,8 +439,8 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
                 </ResponsiveContainer>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <div className="flex items-baseline text-foreground">
-                    <span className="text-2xl font-semibold tracking-tight">{sataPercent}</span>
-                    <span className="text-sm font-semibold text-muted-foreground/60 ml-0.5">%</span>
+                    <span className="text-xl font-semibold tracking-tight">{sataPercent}</span>
+                    <span className="text-xs font-semibold text-muted-foreground/60 ml-0.5">%</span>
                   </div>
                 </div>
               </div>

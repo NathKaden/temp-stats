@@ -2,6 +2,7 @@ import os
 import time
 import platform
 import socket
+import re
 from datetime import datetime
 import psutil
 from app.core.config import settings
@@ -13,17 +14,11 @@ class SystemMetricsCollector:
         total_size = 0
         try:
             if os.path.exists(path):
-                count = 0
                 for dirpath, dirnames, filenames in os.walk(path):
                     for f in filenames:
                         fp = os.path.join(dirpath, f)
                         if not os.path.islink(fp):
                             total_size += os.path.getsize(fp)
-                        count += 1
-                        if count > 2000:
-                            break
-                    if count > 2000:
-                        break
         except Exception:
             pass
         return round(total_size / (1024 ** 3), 1)
@@ -109,27 +104,105 @@ class SystemMetricsCollector:
                 pass
         return 0.0
 
-    @staticmethod
-    def get_docker_ram_usage() -> str:
+    KNOWN_SERVICES = {
+        "beskarfox": "Beskarfox",
+        "nextcloud": "Nextcloud",
+        "outline": "Outline",
+        "stats": "Stats",
+        "stats-staging": "Stats",
+        "stats-prod": "Stats",
+        "nuc-stats": "Stats",
+        "temp-stats": "Stats",
+        "nuc-monitor": "Stats",
+        "nuc": "Stats",
+        "minecraft": "Minecraft",
+        "traefik": "Traefik",
+        "ollama": "Ollama",
+        "docker images": "Docker Images",
+        "docker cache": "Docker Cache",
+    }
+
+    GENERIC_ENV_NAMES = {
+        "prod", "staging", "dev", "test", "production", "default",
+        "app", "server", "db", "database", "data", "storage",
+        "mysql", "mariadb", "postgres", "redis"
+    }
+
+    @classmethod
+    def resolve_service_name(cls, labels: dict = None, raw_name: str = "", image: str = "") -> str:
+        """
+        Resolves a clean, displayable service name from Docker container/volume metadata.
+        Handles services organized in /opt/<service>/prod and /opt/<service>/staging,
+        Docker compose project labels, environment prefixes/suffixes, and container names.
+        """
+        labels = labels or {}
+
+        # 1. Check explicit custom label
+        custom = labels.get("stats.service.name")
+        if custom:
+            return custom.strip()
+
+        # 2. Check compose working_dir or config_files (e.g. /opt/beskarfox/prod or /opt/beskarfox/staging -> beskarfox)
+        working_dir = labels.get("com.docker.compose.project.working_dir", "")
+        if not working_dir:
+            config_files = labels.get("com.docker.compose.project.config_files", "")
+            if config_files:
+                working_dir = os.path.dirname(config_files.split(",")[0])
+
+        if working_dir:
+            match = re.search(r"/opt/([^/]+)", working_dir)
+            if match:
+                candidate = match.group(1).lower().strip()
+                if candidate not in cls.GENERIC_ENV_NAMES:
+                    return cls.KNOWN_SERVICES.get(candidate, candidate.capitalize())
+
+        # 3. Check compose project name (e.g. beskarfox-prod, beskarfox-staging, temp-stats)
+        project = labels.get("com.docker.compose.project", "").strip().lower()
+        if project and project not in cls.GENERIC_ENV_NAMES:
+            cleaned_proj = re.sub(r"[-_](prod|staging|dev|test|production)$", "", project)
+            if cleaned_proj in cls.KNOWN_SERVICES:
+                return cls.KNOWN_SERVICES[cleaned_proj]
+            if project in cls.KNOWN_SERVICES:
+                return cls.KNOWN_SERVICES[project]
+            return cls.KNOWN_SERVICES.get(cleaned_proj, cleaned_proj.capitalize())
+
+        # 4. Check raw_name (container name or volume name) against known service tokens
+        clean_name = raw_name.lstrip("/").lower()
+        if clean_name in cls.KNOWN_SERVICES:
+            return cls.KNOWN_SERVICES[clean_name]
+        for key, display_name in cls.KNOWN_SERVICES.items():
+            if key in ("prod", "staging", "dev", "app", "server"):
+                continue
+            pattern = r"(^|[-_])" + re.escape(key) + r"([-_]|$)"
+            if re.search(pattern, clean_name):
+                return display_name
+
+        # 5. Check container image name
+        if image:
+            clean_image = image.lower()
+            for key, display_name in cls.KNOWN_SERVICES.items():
+                if key in ("prod", "staging", "dev", "app", "server"):
+                    continue
+                if key in clean_image:
+                    return display_name
+
+        # 6. Fallback token splitting
+        parts = [p for p in re.split(r"[-_]", clean_name) if p and p not in cls.GENERIC_ENV_NAMES]
+        if parts:
+            base = parts[0]
+            return cls.KNOWN_SERVICES.get(base, base.capitalize())
+        return "Autres"
+
+    @classmethod
+    def get_docker_ram_usage(cls) -> str:
         import json
         import os
         import subprocess
 
         ram_usage = {}
-        
-        known_names = {
-            "beskarfox": "Beskarfox",
-            "nextcloud": "Nextcloud",
-            "outline": "Outline",
-            "nuc-stats": "Stats",
-            "temp-stats": "Stats",
-            "stats": "Stats",
-            "minecraft": "Minecraft",
-            "traefik": "Traefik"
-        }
 
         # 1. Try Docker socket query and cgroups reading
-        containers = SystemMetricsCollector.query_docker_socket("/containers/json")
+        containers = cls.query_docker_socket("/containers/json")
         if containers:
             for container in containers:
                 c_id = container.get("Id", "")
@@ -137,18 +210,12 @@ class SystemMetricsCollector:
                 if not c_id or not names:
                     continue
                 name = names[0].lstrip('/')
-                
-                # Group by compose project name if available, otherwise by container prefix
                 labels = container.get("Labels", {})
-                project = labels.get("com.docker.compose.project")
-                if not project:
-                    proj_parts = name.replace('_', '-').split('-')
-                    project = proj_parts[0] if proj_parts else name
-                
-                project = project.strip().lower()
-                project_display = known_names.get(project, project.capitalize())
-                
-                mem_bytes = SystemMetricsCollector.get_container_mem_usage(c_id)
+                image = container.get("Image", "")
+
+                project_display = cls.resolve_service_name(labels=labels, raw_name=name, image=image)
+
+                mem_bytes = cls.get_container_mem_usage(c_id)
                 mem_mb = mem_bytes / (1024.0 * 1024.0)
                 if mem_mb > 0:
                     ram_usage[project_display] = round(ram_usage.get(project_display, 0.0) + mem_mb, 1)
@@ -188,27 +255,169 @@ class SystemMetricsCollector:
                                 mem_mb = value
                         except ValueError:
                             pass
-                        
+
                         if mem_mb > 0:
-                            proj_parts = name.replace('_', '-').split('-')
-                            project = proj_parts[0] if proj_parts else name
-                            project = project.strip().lower()
-                            project_display = known_names.get(project, project.capitalize())
+                            project_display = cls.resolve_service_name(raw_name=name)
                             ram_usage[project_display] = round(ram_usage.get(project_display, 0.0) + mem_mb, 1)
             except Exception:
                 pass
 
-        # 3. Always ensure our local Stats process is represented
+        # 3. Always ensure our local Stats process is represented (if not already counted in Docker)
+        if "Stats" not in ram_usage:
+            try:
+                import psutil
+                process = psutil.Process(os.getpid())
+                local_stats_mb = process.memory_info().rss / (1024.0 * 1024.0)
+                stats_key = "Stats"
+                ram_usage[stats_key] = round(local_stats_mb, 1)
+            except Exception:
+                pass
+
+        # 4. Check Ollama memory (runs as a host service outside Docker)
+        if "Ollama" not in ram_usage or ram_usage["Ollama"] == 0.0:
+            ollama_mb = cls.get_ollama_ram_usage()
+            if ollama_mb > 0:
+                ram_usage["Ollama"] = round(ollama_mb, 1)
+
+        return json.dumps(ram_usage)
+
+    @classmethod
+    def get_ollama_ram_usage(cls) -> float:
+        """
+        Retrieves RAM usage of Ollama when running natively on the host (outside Docker).
+        Tries scanning /host/proc (mounted in Docker) or /proc (native host),
+        systemd cgroups, and psutil.
+        Returns total usage in Megabytes (MB).
+        """
+        import os
+
+        # 1. Try scanning host processes via /host/proc (Docker volume) or /proc (native host)
+        proc_dir = "/host/proc" if os.path.exists("/host/proc") else "/proc"
+        total_proc_mb = 0.0
+        if os.path.exists(proc_dir):
+            try:
+                for pid in os.listdir(proc_dir):
+                    if not pid.isdigit():
+                        continue
+                    pid_dir = os.path.join(proc_dir, pid)
+                    try:
+                        comm = ""
+                        comm_path = os.path.join(pid_dir, "comm")
+                        if os.path.exists(comm_path):
+                            with open(comm_path, "r", errors="ignore") as f:
+                                comm = f.read().strip().lower()
+
+                        cmd_first = ""
+                        has_runner = False
+                        cmdline_path = os.path.join(pid_dir, "cmdline")
+                        if os.path.exists(cmdline_path):
+                            with open(cmdline_path, "rb") as f:
+                                raw = f.read().decode("utf-8", errors="ignore")
+                                parts = raw.split("\x00")
+                                if parts and parts[0]:
+                                    cmd_first = os.path.basename(parts[0].strip().lower())
+                                if any("ollama_llama_server" in p.lower() for p in parts):
+                                    has_runner = True
+
+                        is_ollama = False
+                        if comm in ("ollama", "ollama_llama_se", "ollama_llama_server") or comm.startswith("ollama"):
+                            is_ollama = True
+                        elif cmd_first in ("ollama", "ollama_llama_server") or cmd_first.startswith("ollama"):
+                            is_ollama = True
+                        elif has_runner:
+                            is_ollama = True
+
+                        if is_ollama:
+                            # Read resident memory (VmRSS) from /status
+                            status_path = os.path.join(pid_dir, "status")
+                            if os.path.exists(status_path):
+                                with open(status_path, "r", errors="ignore") as f:
+                                    for line in f:
+                                        if line.startswith("VmRSS:"):
+                                            parts = line.split()
+                                            if len(parts) >= 2:
+                                                total_proc_mb += float(parts[1]) / 1024.0
+                                            break
+                    except (IOError, OSError, ValueError, FileNotFoundError):
+                        continue
+            except Exception:
+                pass
+
+        if total_proc_mb > 0:
+            return round(total_proc_mb, 1)
+
+        # 2. Try systemd cgroups v2 / v1
+        cgroup_paths_v2 = [
+            "/sys/fs/cgroup/system.slice/ollama.service/memory.current",
+            "/sys/fs/cgroup/system.slice/system-ollama.slice/memory.current",
+            "/sys/fs/cgroup/ollama.service/memory.current",
+        ]
+        for p in cgroup_paths_v2:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r") as f:
+                        val = float(f.read().strip())
+                        mb = val / (1024.0 * 1024.0)
+                        if mb > 0:
+                            return round(mb, 1)
+                except Exception:
+                    pass
+
+        cgroup_paths_v1 = [
+            "/sys/fs/cgroup/memory/system.slice/ollama.service/memory.usage_in_bytes",
+            "/sys/fs/cgroup/memory/ollama.service/memory.usage_in_bytes",
+        ]
+        for p in cgroup_paths_v1:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r") as f:
+                        val = float(f.read().strip())
+                        mb = val / (1024.0 * 1024.0)
+                        if mb > 0:
+                            return round(mb, 1)
+                except Exception:
+                    pass
+
+        # 3. Fallback to Ollama local REST API if reachable
         try:
-            import psutil
-            process = psutil.Process(os.getpid())
-            local_stats_mb = process.memory_info().rss / (1024.0 * 1024.0)
-            stats_key = "Stats"
-            ram_usage[stats_key] = round(ram_usage.get(stats_key, 0.0) + local_stats_mb, 1)
+            import urllib.request
+            import json
+            req = urllib.request.Request("http://127.0.0.1:11434/api/ps")
+            with urllib.request.urlopen(req, timeout=0.5) as resp:
+                if resp.status == 200:
+                    data = json.loads(resp.read().decode("utf-8"))
+                    models = data.get("models", [])
+                    total_bytes = sum(m.get("size", 0) for m in models)
+                    if total_bytes > 0:
+                        return round(total_bytes / (1024.0 * 1024.0), 1)
         except Exception:
             pass
 
-        return json.dumps(ram_usage)
+        # 4. Fallback to psutil if available and running on host
+        try:
+            import psutil
+            psutil_mb = 0.0
+            for proc in psutil.process_iter(['name', 'cmdline', 'memory_info']):
+                try:
+                    p_name = (proc.info.get('name') or '').lower()
+                    p_cmd = proc.info.get('cmdline') or []
+                    p_bin = os.path.basename(p_cmd[0].lower()) if p_cmd else ''
+                    if (
+                        p_name.startswith('ollama')
+                        or p_bin.startswith('ollama')
+                        or any('ollama_llama_server' in a.lower() for a in p_cmd)
+                    ):
+                        mem = proc.info.get('memory_info')
+                        if mem and hasattr(mem, 'rss'):
+                            psutil_mb += mem.rss / (1024.0 * 1024.0)
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                    pass
+            if psutil_mb > 0:
+                return round(psutil_mb, 1)
+        except Exception:
+            pass
+
+        return 0.0
 
     @staticmethod
     def get_hostname() -> str:
@@ -460,6 +669,22 @@ class SystemMetricsCollector:
                 if size > 0:
                     services_breakdown[key] = size
 
+        # Check Ollama storage locations
+        if "ollama" not in services_breakdown or services_breakdown["ollama"] == 0.0:
+            ollama_candidates = [
+                "/opt/ollama",
+                "/usr/share/ollama/.ollama",
+                "/usr/share/ollama",
+                "/var/lib/ollama",
+                os.path.expanduser("~/.ollama"),
+            ]
+            for o_path in ollama_candidates:
+                if os.path.exists(o_path):
+                    size = cls.get_dir_size(o_path)
+                    if size > 0:
+                        services_breakdown["ollama"] = size
+                        break
+
         if "stats" not in services_breakdown or services_breakdown["stats"] == 0.0:
             services_breakdown["stats"] = cls.get_dir_size(stats_path)
 
@@ -467,6 +692,24 @@ class SystemMetricsCollector:
         system_df = SystemMetricsCollector.query_docker_socket("/system/df")
         if system_df:
             try:
+                # Build volume-to-service mapping from active containers
+                volume_to_service = {}
+                containers = SystemMetricsCollector.query_docker_socket("/containers/json")
+                if containers:
+                    for container in containers:
+                        c_names = container.get("Names", [])
+                        c_name = c_names[0].lstrip('/') if c_names else ""
+                        c_labels = container.get("Labels", {})
+                        c_image = container.get("Image", "")
+                        c_service = cls.resolve_service_name(labels=c_labels, raw_name=c_name, image=c_image)
+
+                        if c_service and c_service != "Autres":
+                            for mount in container.get("Mounts", []):
+                                if mount.get("Type") == "volume":
+                                    v_name = mount.get("Name")
+                                    if v_name:
+                                        volume_to_service[v_name] = c_service
+
                 # Docker volumes sizes
                 volumes = system_df.get("Volumes", [])
                 if volumes:
@@ -477,21 +720,29 @@ class SystemMetricsCollector:
                             size_bytes = usage.get("Size", 0)
                             size_gb = size_bytes / (1024 ** 3)
                             if size_gb > 0.05:  # more than 50MB
-                                # Try to match to an existing service in services_breakdown (case-insensitive)
-                                matched = False
-                                for key in list(services_breakdown.keys()):
-                                    if key.lower() in name.lower() or name.lower() in key.lower():
-                                        services_breakdown[key] = round(services_breakdown.get(key, 0.0) + size_gb, 1)
-                                        matched = True
+                                # Skip anonymous Docker volumes (64-char hex hash names)
+                                if re.fullmatch(r"[0-9a-f]{64}", name.strip()):
+                                    continue
+
+                                vol_labels = vol.get("Labels") or {}
+                                service_display = volume_to_service.get(name)
+                                if not service_display:
+                                    service_display = cls.resolve_service_name(labels=vol_labels, raw_name=name)
+
+                                if not service_display or service_display == "Autres":
+                                    continue
+
+                                # Match against existing key in services_breakdown (case-insensitive)
+                                matched_key = None
+                                for k in list(services_breakdown.keys()):
+                                    if k.lower() == service_display.lower():
+                                        matched_key = k
                                         break
-                                
-                                # If no match, try to group under a base name derived from the volume name
-                                if not matched:
-                                    # E.g. beskarfox_db-data -> beskarfox
-                                    parts = name.replace('_', '-').split('-')
-                                    if parts:
-                                        proj = parts[0]
-                                        services_breakdown[proj] = round(services_breakdown.get(proj, 0.0) + size_gb, 1)
+
+                                target_key = matched_key if matched_key else service_display
+                                services_breakdown[target_key] = round(
+                                    max(services_breakdown.get(target_key, 0.0), size_gb), 1
+                                )
 
                 # Docker images size
                 images = system_df.get("Images", [])
@@ -500,25 +751,21 @@ class SystemMetricsCollector:
                     docker_images_gb = round(total_images_bytes / (1024 ** 3), 1)
                     if docker_images_gb > 0:
                         services_breakdown["Docker Images"] = docker_images_gb
+
+                # Docker build cache size
+                build_cache = system_df.get("BuildCache", [])
+                if build_cache:
+                    total_bc_bytes = sum(b.get("Size", 0) for b in build_cache)
+                    build_cache_gb = round(total_bc_bytes / (1024 ** 3), 1)
+                    if build_cache_gb > 0:
+                        services_breakdown["Docker Cache"] = build_cache_gb
             except Exception:
                 pass
 
         # Normalize and group keys under clean names
-        known_names = {
-            "beskarfox": "Beskarfox",
-            "nextcloud": "Nextcloud",
-            "outline": "Outline",
-            "nuc-stats": "Stats",
-            "temp-stats": "Stats",
-            "stats": "Stats",
-            "minecraft": "Minecraft",
-            "traefik": "Traefik"
-        }
-        
         grouped_breakdown = {}
         for key, val in services_breakdown.items():
-            lower_key = key.lower().strip()
-            clean_key = known_names.get(lower_key, key.capitalize())
+            clean_key = cls.resolve_service_name(raw_name=key)
             grouped_breakdown[clean_key] = round(grouped_breakdown.get(clean_key, 0.0) + val, 1)
 
         # Calculate 'Autres' (Others)
