@@ -43,8 +43,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }} aria-hidden="true">
           <filter id="liquidFilter">
-            <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves={2} seed={4} result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale={40} xChannelSelector="R" yChannelSelector="G" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.012 0.012" numOctaves={2} seed={4} result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={60} xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </svg>
         <ThemeProvider

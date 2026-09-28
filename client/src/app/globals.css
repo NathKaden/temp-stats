@@ -165,5 +165,5 @@
   background: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
   -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
-  backdrop-filter: url(#liquidFilter) blur(2px) saturate(160%) !important;
+  backdrop-filter: url(#liquidFilter) blur(12px) saturate(160%) !important;
 }
