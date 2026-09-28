@@ -11,7 +11,7 @@ async function handleProxy(
     const searchParams = request.nextUrl.searchParams.toString();
     
     // Read the backend URL dynamically at runtime from environment variables
-    const backendUrl = process.env.BACKEND_API_URL || "http://nuc-stats-server:8000";
+    const backendUrl = process.env.BACKEND_API_URL || "http://stats-server:8000";
     const targetUrl = `${backendUrl}/api/${pathString}${searchParams ? `?${searchParams}` : ""}`;
 
     const headers: Record<string, string> = {
