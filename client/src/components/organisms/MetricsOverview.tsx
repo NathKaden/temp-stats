@@ -161,8 +161,34 @@ export const MetricsOverview = ({ latest, backupsStatus }: MetricsOverviewProps)
 
   return (
     <div className="flex flex-col gap-16">
+      {/* Test Component: 2. SVG displacement (vrai "liquid") from glass-test.html */}
+      <div className="pt-6 flex flex-col gap-2">
+        <h2 className="text-base font-bold text-zinc-300">2. SVG displacement (vrai &quot;liquid&quot;)</h2>
+        <p className="text-xs text-zinc-400">
+          feDisplacementMap pour la distorsion. C&apos;est ce que fait GlassSurface / liquid-glass-react. Risque de ne rien afficher sur Safari/Chrome mobile.
+        </p>
+        <div
+          className="p-6 rounded-[20px] text-base mb-3 text-white relative"
+          style={{
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.25)",
+            backdropFilter: "url(#liquidFilter) blur(2px) saturate(160%)",
+            WebkitBackdropFilter: "blur(16px) saturate(160%)",
+          }}
+        >
+          <span
+            className="inline-block text-[0.7rem] px-2 py-0.5 rounded-lg mb-1.5"
+            style={{ background: "rgba(0, 0, 0, 0.25)" }}
+          >
+            glass-svg
+          </span>
+          <br />
+          Flou + distorsion (test)
+        </div>
+      </div>
+
       {/* CPU & RAM Section */}
-      <div className="flex flex-col gap-4 pt-6">
+      <div className="flex flex-col gap-4">
         <h2 className="font-poppins text-2xl font-bold tracking-wide text-zinc-400 ml-1">Utilisation</h2>
         <div className="grid gap-4 grid-cols-1 md:grid-cols-5">
 
