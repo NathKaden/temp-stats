@@ -158,3 +158,12 @@
 .glass-btn-blended::after {
   display: none !important;
 }
+
+/* 2. SVG displacement (type "liquid glass" avec distorsion) */
+.glass-svg {
+  position: relative;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(160%) !important;
+  backdrop-filter: url(#liquidFilter) blur(2px) saturate(160%) !important;
+}

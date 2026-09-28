@@ -7,13 +7,18 @@ function Card({
   size = "default",
   ...props
 }: React.ComponentProps<"div"> & { size?: "default" | "sm" }) {
+  const cleanedClassName = className
+    ?.replace(/\bglass-card-blended\b/g, "")
+    .replace(/\bbg-card(?:\/\d+)?\b/g, "")
+    .replace(/\bbackdrop-blur-[a-z0-9]+\b/g, "");
+
   return (
     <div
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
-        className
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl glass-svg py-(--card-spacing) text-sm text-card-foreground [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        cleanedClassName
       )}
       {...props}
     />

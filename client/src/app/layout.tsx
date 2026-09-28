@@ -41,6 +41,12 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
+        <svg width="0" height="0" style={{ position: "absolute", pointerEvents: "none" }} aria-hidden="true">
+          <filter id="liquidFilter">
+            <feTurbulence type="fractalNoise" baseFrequency="0.008 0.008" numOctaves={2} seed={4} result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale={40} xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </svg>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
