@@ -2,10 +2,10 @@ name: stats-staging
 services:
   server:
     build: ./server
-    container_name: stats-staging-server
-    hostname: stats-staging-box
+    container_name: stats-server-staging
+    hostname: stats-server-staging
     ports:
-      - "8001:8000"
+      - "8000:8000"
     volumes:
       - ./server:/app
       - ./server/data:/app/data
@@ -21,21 +21,23 @@ services:
     restart: always
     networks:
       - proxy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   client:
     build:
       context: ./client
       args:
         - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-    container_name: stats-staging-client
+    container_name: stats-client-staging
     ports:
-      - "3001:3000"
+      - "3000:3000"
     volumes:
       - ./client:/app
       - /app/node_modules
       - /app/.next
     environment:
-      - BACKEND_API_URL=http://stats-staging-server:8000
+      - BACKEND_API_URL=http://stats-server-staging:8000
       - NODE_ENV=development
       - ALLOWED_DEV_ORIGINS=${ALLOWED_DEV_ORIGINS:-dev.beskarfox.com,stats.staging.beskarfox.com,localhost,127.0.0.1}
     command: npm run dev
@@ -45,14 +47,15 @@ services:
     networks:
       - proxy
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
-      - "traefik.http.routers.stats-staging-client.rule=Host(`${TRAEFIK_CLIENT_HOST:-dev.beskarfox.com}`)"
-      - "traefik.http.routers.stats-staging-client.entrypoints=websecure"
-      - "traefik.http.routers.stats-staging-client.tls=true"
-      - "traefik.http.routers.stats-staging-client-web.rule=Host(`${TRAEFIK_CLIENT_HOST:-dev.beskarfox.com}`)"
-      - "traefik.http.routers.stats-staging-client-web.entrypoints=web"
-      - "traefik.http.services.stats-staging-client.loadbalancer.server.port=3000"
+      - "traefik.http.routers.stats-client-staging.rule=Host(`${TRAEFIK_CLIENT_HOST:-stats.staging.beskarfox.com}`)"
+      - "traefik.http.routers.stats-client-staging.entrypoints=websecure"
+      - "traefik.http.routers.stats-client-staging.tls=true"
+      - "traefik.http.routers.stats-client-staging-web.rule=Host(`${TRAEFIK_CLIENT_HOST:-stats.staging.beskarfox.com}`)"
+      - "traefik.http.routers.stats-client-staging-web.entrypoints=web"
+      - "traefik.http.services.stats-client-staging.loadbalancer.server.port=3000"
 
 networks:
   proxy:
