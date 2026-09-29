@@ -21,6 +21,8 @@ services:
     restart: always
     networks:
       - proxy
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
 
   client:
     build:
@@ -45,6 +47,7 @@ services:
     networks:
       - proxy
     labels:
+      - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       - "traefik.docker.network=proxy"
       - "traefik.http.routers.stats-client-staging.rule=Host(`${TRAEFIK_CLIENT_HOST:-stats.staging.beskarfox.com}`)"
