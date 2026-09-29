@@ -4,7 +4,7 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
-    image: ghcr.io/nathkaden/temp-stats-server:latest
+    image: stats-server
     container_name: stats-server
     volumes:
       - ./server-data:/app/data
@@ -37,7 +37,7 @@ services:
     build:
       context: ./client
       dockerfile: Dockerfile
-    image: ghcr.io/nathkaden/temp-stats-client:latest
+    image: stats-client
     container_name: stats-client
     depends_on:
       - server
